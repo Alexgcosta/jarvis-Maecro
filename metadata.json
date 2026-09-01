@@ -1,0 +1,7 @@
+{
+  "name": "J.A.R.V.I.S. Financial Market Agent",
+  "description": "Terminal holográfico quantitativo J.A.R.V.I.S. especializado em análise macroeconômica em tempo real, sentimento global e brasileiro, e sinais quantitativos de compra e venda de Dólar (USD/BRL) e Índice Bovespa (IBOV).",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
