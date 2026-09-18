@@ -175,18 +175,18 @@ export const MacroNewsFeed: React.FC<MacroNewsFeedProps> = ({ news, onAskJarvis 
               </div>
             </div>
 
-            {/* Ask JARVIS button */}
+            {/* Ask MCP Macro Hub button */}
             <button
               onClick={() => {
                 soundFX.playBlip(1100);
                 onAskJarvis(
-                  `J.A.R.V.I.S., analise profundamente o impacto da seguinte notícia macroeconômica no Dólar e no Índice Bovespa: "${item.headline}". Qual operação você recomenda agora com base nela?`
+                  `MCP Macro Hub: Analise o impacto da seguinte notícia macroeconômica no Dólar (WDO/DOL) e no Índice (WIN/IBOV): "${item.headline}". Qual a leitura de mercado e implicação para o posicionamento quantitativo intradiário?`
                 );
               }}
-              className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-cyan-500/20 border border-cyan-500/40 hover:bg-cyan-500/30 text-cyan-200 font-tech text-xs font-semibold flex items-center justify-center gap-2 transition-all shrink-0"
+              className="w-full md:w-auto px-4 py-2.5 rounded-xl bg-violet-600/20 border border-violet-500/40 hover:bg-violet-600/30 text-violet-200 font-mono text-xs font-semibold flex items-center justify-center gap-2 transition-all shrink-0"
             >
-              <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-              Analisar Notícia com JARVIS
+              <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+              Análise Macroeconômica da Notícia
             </button>
           </div>
         ))}

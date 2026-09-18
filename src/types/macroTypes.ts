@@ -34,14 +34,27 @@ export type IndicatorCategory =
   | 'COMMODITY'
   | 'RISK'
   | 'MACRO_POLICY'
-  | 'STOCKS_B3';
+  | 'STOCKS_B3'
+  | 'ADRS'
+  | 'SPREAD';
 
+export type MacroBasketGroup =
+  | 'GLOBAL_RISK'       // 🌎 Exterior / risco global
+  | 'BRAZIL_WIN_IMPACT' // 🇧🇷 Brasil / ativos que impactam o WIN
+  | 'COMMODITIES'       // 🏭 Commodities importantes para o Brasil
+  | 'BRAZILIAN_ADRS'    // 🇺🇸 ADRs brasileiras
+  | 'FX_RISK_BRAZIL';   // 💵 Câmbio e risco Brasil
 
 export interface MacroIndicator {
   id: string;
+  key?: string;
+  symbol?: string;
+  polarity?: 'DIRECT' | 'INVERSE' | 'NEUTRAL';
   name: string;
   ticker: string;
   category: IndicatorCategory;
+  basketGroup?: MacroBasketGroup;
+  maisRetornoIdentifier?: string;
   value: number;
   formattedValue: string;
   changePercent: number;
@@ -64,26 +77,40 @@ export interface ConfluencePoint {
   formattedTime: string; // "10:45"
   winReturn: number | null; // e.g. +0.42 (%)
   wdoReturn: number | null; // e.g. -0.18 (%)
-  bullishStrength: number; // 0 to 100
-  bearishStrength: number; // 0 to 100 (non-negative)
-  riskScore: number; // 0 to 100
-  macroTrail: number; // 0 to 100
+  bullishStrength: number | null; // 0 to 100 or null for future points
+  bearishStrength: number | null; // 0 to 100 (non-negative) or null for future points
+  riskScore: number | null; // 0 to 100 or null for future points
+  macroTrail: number | null; // 0 to 100 or null for future points
   scenario: ScenarioType;
-  confluencePercentage: number;
-  confidence: number;
+  confluencePercentage: number | null;
+  confidence: number | null;
   dataQuality: DataFreshnessStatus;
   divergenceFlag?: boolean;
-  marker?: 'ALTA_ASSUMIU' | 'BAIXA_ASSUMIU' | 'CONFLUENCIA_PERDIDA' | 'ABERTURA_MERCADO' | null;
+  marker?: 'ALTA_ASSUMIU' | 'BAIXA_ASSUMIU' | 'CONFLUENCIA_PERDIDA' | 'ABERTURA_MERCADO' | 'ABERTURA_ACOES' | 'ABERTURA_NY' | 'AJUSTE_DIARIO' | 'FECHAMENTO_B3' | null;
+  isCurrentNow?: boolean;
+  isFuture?: boolean;
+  projectedBullishStrength?: number;
+  projectedBearishStrength?: number;
+  projectedRiskScore?: number;
+  projectedScenario?: ScenarioType;
 }
 
 export interface IntradayTimelinePoint {
   timestamp: string;
   formattedTime: string;
-  winReturn: number;
-  wdoReturn: number;
-  globalSentiment: number; // -100 to +100
-  winPrice?: number;
-  wdoPrice?: number;
+  winReturn: number | null;
+  wdoReturn: number | null;
+  globalSentiment: number | null; // -100 to +100 or null for future points
+  winPrice?: number | null;
+  wdoPrice?: number | null;
+  riskScore?: number | null; // 0 to 100
+  winBias?: number | null; // -100 to +100
+  wdoBias?: number | null; // -100 to +100
+  scenario?: ScenarioType;
+  isCurrentNow?: boolean;
+  isFuture?: boolean;
+  projectedWinReturn?: number;
+  projectedWdoReturn?: number;
 }
 
 export interface ScenarioEvolutionPoint {
@@ -149,14 +176,21 @@ export interface EconomicCalendarEvent {
 
 export interface MacroNewsItem {
   id: string;
-  title: string;
+  title?: string;
+  headline?: string;
   source: string;
+  sourceUrl?: string;
   timestamp: string;
-  formattedTime: string;
-  category: 'POSITIVO' | 'NEGATIVO' | 'NEUTRO';
-  impact: 'ALTO' | 'MEDIO' | 'BAIXO';
-  relevance: number; // 0-100
-  relatedAsset: 'WIN' | 'WDO' | 'GLOBAL' | 'RATES' | 'COMMODITIES';
+  formattedTime?: string;
+  category?: string;
+  impact?: 'ALTO' | 'MEDIO' | 'BAIXO';
+  impactDollar?: 'ALTA' | 'BAIXA' | 'NEUTRO';
+  impactIndex?: 'ALTA' | 'BAIXA' | 'NEUTRO';
+  urgency?: string;
+  summary?: string;
+  tags?: string[];
+  relevance?: number; // 0-100
+  relatedAsset?: 'WIN' | 'WDO' | 'GLOBAL' | 'RATES' | 'COMMODITIES';
   url?: string;
 }
 

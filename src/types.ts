@@ -1,7 +1,9 @@
 export * from './types/macroTypes';
 
 export type HUDView =
+  | 'win_leaders'
   | 'dashboard'
+  | 'mcp_hub'
   | 'signals'
   | 'sentiment'
   | 'sources'
@@ -36,7 +38,7 @@ export interface ApiKeyItem {
   createdAt?: string;
 }
 
-export type HUDTheme = 'cyan' | 'gold' | 'emerald' | 'crimson' | 'amethyst';
+export type HUDTheme = 'cyan' | 'gold' | 'emerald' | 'crimson' | 'amethyst' | 'amber';
 
 export type AIModelType = 'gemini-3.7-flash' | 'gemini-3.1-flash-lite' | 'gemini-2.5-pro' | 'chatgpt-4o';
 
@@ -67,9 +69,9 @@ export interface SentimentAnalysis {
   lastUpdated: string;
 }
 
-export interface JarvisMessage {
+export interface McpAssistantMessage {
   id: string;
-  sender: 'user' | 'jarvis';
+  sender: 'user' | 'assistant' | 'jarvis';
   text: string;
   timestamp: string;
   tradeSignal?: {
@@ -79,6 +81,8 @@ export interface JarvisMessage {
   };
   citations?: GroundingCitation[];
 }
+
+export type JarvisMessage = McpAssistantMessage;
 
 export interface GroundingCitation {
   title?: string;
@@ -207,5 +211,9 @@ export interface MarketStateResponse {
     category?: string;
   }[];
   sources: MacroSourceItem[];
-  timestamp: string;
+  timestamp?: string;
+  news?: any[];
+  calendar?: any[];
+  arcReactorPower?: string;
+  systemStatus?: string;
 }

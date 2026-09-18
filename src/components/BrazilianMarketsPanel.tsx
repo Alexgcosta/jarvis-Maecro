@@ -8,14 +8,29 @@ interface BrazilianMarketsPanelProps {
 
 export const BrazilianMarketsPanel: React.FC<BrazilianMarketsPanelProps> = ({ indicators = [] }) => {
   const winInd = indicators.find((i) => i.id === 'WIN');
+  const ibovInd = indicators.find((i) => i.id === 'IBOV');
+  const wdoInd = indicators.find((i) => i.id === 'WDO');
   const usdInd = indicators.find((i) => i.id === 'USD_BRL');
   const ewzInd = indicators.find((i) => i.id === 'EWZ');
   const flowInd = indicators.find((i) => i.id === 'FOREIGN_FLOW');
+  const diInd = indicators.find((i) => i.id === 'DI_FUTURO');
+  const selicInd = indicators.find((i) => i.id === 'SELIC');
+  const cdsInd = indicators.find((i) => i.id === 'CDS_BRASIL');
 
   const winValue = winInd
     ? `${Math.round(winInd.value).toLocaleString('pt-BR')} pts`
-    : '134.250 pts';
-  const winChange = winInd ? `${winInd.changePercent >= 0 ? '+' : ''}${winInd.changePercent.toFixed(2)}%` : '+0.42%';
+    : '186.930 pts';
+  const winChange = winInd ? `${winInd.changePercent >= 0 ? '+' : ''}${winInd.changePercent.toFixed(2)}%` : '+0.39%';
+
+  const ibovValue = ibovInd
+    ? `${Math.round(ibovInd.value).toLocaleString('pt-BR')} pts`
+    : '135.400 pts';
+  const ibovChange = ibovInd ? `${ibovInd.changePercent >= 0 ? '+' : ''}${ibovInd.changePercent.toFixed(2)}%` : '+0.48%';
+
+  const wdoValue = wdoInd
+    ? `${wdoInd.value.toFixed(1).replace('.', ',')} pts`
+    : '5.128,1 pts';
+  const wdoChange = wdoInd ? `${wdoInd.changePercent >= 0 ? '+' : ''}${wdoInd.changePercent.toFixed(2)}%` : '-0.37%';
 
   const usdValue = usdInd
     ? `R$ ${usdInd.value.toFixed(4).replace('.', ',')}`
@@ -28,20 +43,33 @@ export const BrazilianMarketsPanel: React.FC<BrazilianMarketsPanelProps> = ({ in
   const flowValue = flowInd ? `+R$ ${(flowInd.value / 1000).toFixed(2)}B` : '+R$ 1.85B';
   const flowChange = flowInd ? `${flowInd.changePercent >= 0 ? '+' : ''}${flowInd.changePercent.toFixed(1)}%` : '+15.0%';
 
+  const diValue = diInd ? `${diInd.value.toFixed(2).replace('.', ',')}%` : '11,85%';
+  const diChange = diInd ? `${diInd.changePercent >= 0 ? '+' : ''}${diInd.changePercent.toFixed(2)}%` : '-0.75%';
+
+  const cdsValue = cdsInd ? `${cdsInd.value} pts` : '148 pts';
+  const cdsChange = cdsInd ? `${cdsInd.changePercent >= 0 ? '+' : ''}${cdsInd.changePercent.toFixed(2)}%` : '-0.65%';
+
   const brMetrics = [
     {
       name: 'Mini Índice WIN (Futuro)',
       value: winValue,
       change: winChange,
       positive: winInd ? winInd.changePercent >= 0 : true,
-      detail: `${winInd?.source || 'HG Brasil / Mosca'} • Cotação Real`,
+      detail: `${winInd?.source || 'Mais Retorno / B3'} • Cotação Real`,
     },
     {
-      name: 'Dólar Spot / WDO',
-      value: usdValue,
-      change: usdChange,
-      positive: usdInd ? usdInd.changePercent <= 0 : true,
-      detail: `${usdInd?.source || 'HG Brasil Finance'} • Cotação Real`,
+      name: 'Ibovespa À Vista (IBOV)',
+      value: ibovValue,
+      change: ibovChange,
+      positive: ibovInd ? ibovInd.changePercent >= 0 : true,
+      detail: 'Mercado de Ações B3 à vista',
+    },
+    {
+      name: 'Mini Dólar (WDO) / USD',
+      value: wdoValue,
+      change: wdoChange,
+      positive: wdoInd ? wdoInd.changePercent <= 0 : true,
+      detail: `Spot: ${usdValue} (${usdChange})`,
     },
     {
       name: 'iShares MSCI Brazil (EWZ)',
@@ -56,6 +84,13 @@ export const BrazilianMarketsPanel: React.FC<BrazilianMarketsPanelProps> = ({ in
       change: flowChange,
       positive: flowInd ? flowInd.changePercent >= 0 : true,
       detail: 'Entrada Líquida Institucional',
+    },
+    {
+      name: 'DI Futuro / Risco CDS',
+      value: diValue,
+      change: diChange,
+      positive: diInd ? diInd.changePercent <= 0 : true,
+      detail: `CDS 5A: ${cdsValue} (${cdsChange})`,
     },
   ];
 
@@ -84,7 +119,7 @@ export const BrazilianMarketsPanel: React.FC<BrazilianMarketsPanelProps> = ({ in
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
         {brMetrics.map((item, idx) => (
           <div
             key={idx}

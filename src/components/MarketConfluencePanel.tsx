@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   ResponsiveContainer,
   LineChart,
@@ -11,6 +11,7 @@ import {
   ReferenceLine,
 } from 'recharts';
 import { ConfluencePoint, MarketCrossing, ScenarioType } from '../types/macroTypes';
+import { B3_DISPLAY_X_TICKS } from '../data/mockMarketTimeline';
 import {
   TrendingUp,
   TrendingDown,
@@ -53,7 +54,36 @@ export const MarketConfluencePanel: React.FC<MarketConfluencePanelProps> = ({
   crossings,
   currentTime,
 }) => {
-  const currentPoint = confluenceData.find((d) => d.isCurrentNow) || confluenceData[Math.floor(confluenceData.length / 2)];
+  const [sessionFilter, setSessionFilter] = useState<'REGULAR' | 'ALL'>('REGULAR');
+
+  // Filtrar dados para o horário de funcionamento da B3 (09:00 às 18:30) por padrão
+  const displayData = useMemo(() => {
+    const raw = sessionFilter === 'REGULAR'
+      ? confluenceData.filter((p) => {
+          const [h, m] = p.formattedTime.split(':').map(Number);
+          const mins = h * 60 + (m || 0);
+          return mins >= 540 && mins <= 1110;
+        })
+      : confluenceData;
+
+    // Assegura que pontos futuros não tenham valores de linha contínua
+    return raw.map((p) => {
+      if (p.isFuture) {
+        return {
+          ...p,
+          bullishStrength: null,
+          bearishStrength: null,
+          riskScore: null,
+          macroTrail: null,
+          confluencePercentage: null,
+          confidence: null,
+        };
+      }
+      return p;
+    });
+  }, [confluenceData, sessionFilter]);
+
+  const currentPoint = displayData.find((d) => d.isCurrentNow) || displayData[displayData.length - 1] || displayData[0];
   const chartReferenceTick = currentPoint?.formattedTime || '13:00';
   const displayCurrentTime = currentTime || currentPoint?.formattedTime || '13:00';
 
@@ -95,16 +125,40 @@ export const MarketConfluencePanel: React.FC<MarketConfluencePanelProps> = ({
               RASTRO DO MACRO
             </h2>
             <span className="font-tech text-xs px-2.5 py-0.5 rounded-full bg-cyan-950 border border-cyan-400/50 text-cyan-300 font-bold tracking-widest uppercase">
-              ESCALA 24H CONTÍNUA // CENÁRIO GLOBAL
+              PREGÃO B3 // 09:00 ÀS 18:00
             </span>
           </div>
           <p className="font-tech text-xs text-slate-300 mt-1">
-            Escala contínua de 24 horas: o cenário global opera ininterruptamente (mesmo com a B3 fechada na Ásia, Europa e Pré-Market), direcionando WIN e WDO de acordo com o sentimento de <strong className="text-emerald-400">🟢 Otimismo (Risk-On)</strong> e <strong className="text-rose-400">🔴 Pessimismo (Risk-Off)</strong>.
+            Escala oficial de funcionamento da B3 (09:00 às 18:00): monitoramento contínuo das 4 forças quantitativas ao longo do pregão, direcionando WIN e WDO de acordo com o fluxo de <strong className="text-emerald-400">🟢 Otimismo (Risk-On)</strong> e <strong className="text-rose-400">🔴 Pessimismo (Risk-Off)</strong>.
           </p>
         </div>
 
-        {/* Current Scenario Badge */}
-        <div className="flex items-center gap-3">
+        {/* Current Scenario Badge & Controles */}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Session Switcher Toggle */}
+          <div className="flex rounded-xl bg-slate-950/80 p-1 border border-cyan-500/30 font-tech">
+            <button
+              onClick={() => setSessionFilter('REGULAR')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                sessionFilter === 'REGULAR'
+                  ? 'bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                  : 'text-slate-400 hover:text-cyan-200'
+              }`}
+            >
+              🇧🇷 09h - 18h (Pregão B3)
+            </button>
+            <button
+              onClick={() => setSessionFilter('ALL')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                sessionFilter === 'ALL'
+                  ? 'bg-cyan-500 text-slate-950 shadow-[0_0_10px_rgba(6,182,212,0.4)]'
+                  : 'text-slate-400 hover:text-cyan-200'
+              }`}
+            >
+              🌐 Visão Expandida
+            </button>
+          </div>
+
           <div
             className={`px-4 py-2 rounded-xl border flex items-center gap-2.5 shadow-lg ${
               scenario === 'ALTA'
@@ -168,13 +222,14 @@ export const MarketConfluencePanel: React.FC<MarketConfluencePanelProps> = ({
           {/* Chart Canvas */}
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={confluenceData} margin={{ top: 15, right: 15, left: -15, bottom: 5 }}>
+              <LineChart data={displayData} margin={{ top: 15, right: 15, left: -15, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" opacity={0.6} />
                 <XAxis
                   dataKey="formattedTime"
                   stroke="#64748b"
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
-                  interval="preserveStartEnd"
+                  ticks={sessionFilter === 'REGULAR' ? B3_DISPLAY_X_TICKS : undefined}
+                  interval={sessionFilter === 'REGULAR' ? 0 : 'preserveStartEnd'}
                 />
                 <YAxis
                   stroke="#64748b"
@@ -183,6 +238,7 @@ export const MarketConfluencePanel: React.FC<MarketConfluencePanelProps> = ({
                   tick={{ fontSize: 11, fill: '#94a3b8' }}
                 />
                 <Tooltip
+                  cursor={{ stroke: '#ffffff', strokeWidth: 1.2, strokeOpacity: 0.8 }}
                   contentStyle={{
                     backgroundColor: '#020617',
                     borderColor: '#06b6d4',
@@ -192,6 +248,7 @@ export const MarketConfluencePanel: React.FC<MarketConfluencePanelProps> = ({
                     boxShadow: '0 0 20px rgba(6,182,212,0.35)',
                   }}
                   formatter={(value: any, name: string) => {
+                    if (value === null || value === undefined) return ['Em aberto (aguardando horário)', name];
                     return [`${value} / 100`, name];
                   }}
                   labelFormatter={(label, payload) => {
@@ -199,8 +256,8 @@ export const MarketConfluencePanel: React.FC<MarketConfluencePanelProps> = ({
                     const statusTag = pt?.isCurrentNow
                       ? '● HORA ATUAL (AO VIVO)'
                       : pt?.isFuture
-                      ? 'PROJEÇÃO 24H'
-                      : 'CONSOLIDADO';
+                      ? 'AGUARDANDO HORÁRIO DO PREGÃO'
+                      : 'CONSOLIDADO B3';
                     return `Horário: ${label} [${statusTag}]`;
                   }}
                 />
@@ -210,18 +267,39 @@ export const MarketConfluencePanel: React.FC<MarketConfluencePanelProps> = ({
                 <ReferenceLine y={75} stroke="#059669" strokeDasharray="2 2" opacity={0.3} />
                 <ReferenceLine y={25} stroke="#dc2626" strokeDasharray="2 2" opacity={0.3} />
 
-                {/* Session Markers */}
+                {/* Marcadores de Sessão Regular B3 */}
                 <ReferenceLine
                   x="09:00"
                   stroke="#10b981"
                   strokeDasharray="4 2"
-                  label={{ value: '09h (Abertura)', fill: '#34d399', fontSize: 10, position: 'insideTopLeft' }}
+                  label={{ value: '09h Abertura B3', fill: '#34d399', fontSize: 10, position: 'insideTopLeft' }}
+                />
+                <ReferenceLine
+                  x="10:00"
+                  stroke="#38bdf8"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.6}
+                  label={{ value: '10h Ações B3', fill: '#7dd3fc', fontSize: 9, position: 'insideTopLeft' }}
+                />
+                <ReferenceLine
+                  x="10:30"
+                  stroke="#818cf8"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                  label={{ value: '10h30 Wall St', fill: '#a5b4fc', fontSize: 9, position: 'insideTopLeft' }}
+                />
+                <ReferenceLine
+                  x="16:30"
+                  stroke="#f59e0b"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.6}
+                  label={{ value: '16h30 Ajuste B3', fill: '#fcd34d', fontSize: 9, position: 'insideTopRight' }}
                 />
                 <ReferenceLine
                   x="18:00"
-                  stroke="#f59e0b"
+                  stroke="#f43f5e"
                   strokeDasharray="4 2"
-                  label={{ value: '18h (Fechamento)', fill: '#fbbf24', fontSize: 10, position: 'insideTopRight' }}
+                  label={{ value: '18h Fechamento B3', fill: '#fb7185', fontSize: 10, position: 'insideTopRight' }}
                 />
 
                 {/* LIVE CURRENT TIME TRACKER LINE */}
@@ -241,48 +319,50 @@ export const MarketConfluencePanel: React.FC<MarketConfluencePanelProps> = ({
 
                 {/* 1. 🟢 Bullish Strength (0 to 100) */}
                 <Line
-                  type="monotone"
+                  type="linear"
                   dataKey="bullishStrength"
                   name="Força de Alta"
-                  stroke="#10b981"
-                  strokeWidth={2.5}
+                  stroke="#22c55e"
+                  strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 6, fill: '#34d399', stroke: '#065f46' }}
+                  connectNulls={false}
+                  activeDot={{ r: 4.5, fill: '#ffffff', stroke: '#22c55e', strokeWidth: 2 }}
                 />
 
                 {/* 2. 🔴 Bearish Strength (0 to 100 - non-negative) */}
                 <Line
-                  type="monotone"
+                  type="linear"
                   dataKey="bearishStrength"
                   name="Força de Baixa"
                   stroke="#ef4444"
-                  strokeWidth={2.5}
+                  strokeWidth={2}
                   dot={false}
-                  activeDot={{ r: 6, fill: '#f87171', stroke: '#991b1b' }}
+                  connectNulls={false}
+                  activeDot={{ r: 4.5, fill: '#ffffff', stroke: '#ef4444', strokeWidth: 2 }}
                 />
 
                 {/* 3. 🟡 Risk Score (0 to 100) */}
                 <Line
-                  type="monotone"
+                  type="linear"
                   dataKey="riskScore"
                   name="Risk Score"
-                  stroke="#f59e0b"
+                  stroke="#eab308"
                   strokeWidth={2}
-                  strokeDasharray="5 3"
                   dot={false}
-                  activeDot={{ r: 5, fill: '#fbbf24', stroke: '#b45309' }}
+                  connectNulls={false}
+                  activeDot={{ r: 4.5, fill: '#ffffff', stroke: '#eab308', strokeWidth: 2 }}
                 />
 
                 {/* 4. 🔵 Macro Trail (0 to 100) */}
                 <Line
-                  type="monotone"
+                  type="linear"
                   dataKey="macroTrail"
                   name="Rastro do Macro"
                   stroke="#38bdf8"
                   strokeWidth={2}
-                  strokeDasharray="3 3"
                   dot={false}
-                  activeDot={{ r: 5, fill: '#38bdf8', stroke: '#0284c7' }}
+                  connectNulls={false}
+                  activeDot={{ r: 4.5, fill: '#ffffff', stroke: '#38bdf8', strokeWidth: 2 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -501,29 +581,59 @@ export const MarketConfluencePanel: React.FC<MarketConfluencePanelProps> = ({
 
       {/* 5. Timeline do Cenário (Section 34) */}
       <div className="mt-4 pt-3 border-t border-cyan-500/20">
-        <span className="font-orbitron font-bold text-xs text-slate-300 tracking-wider block mb-2">
-          TIMELINE DO CENÁRIO AO LONGO DA SESSÃO
-        </span>
+        <div className="flex items-center justify-between mb-2">
+          <span className="font-orbitron font-bold text-xs text-slate-300 tracking-wider">
+            TIMELINE DO CENÁRIO {sessionFilter === 'REGULAR' ? 'NO PREGÃO B3 (09:00 ÀS 18:00)' : 'AO LONGO DAS 24H'}
+          </span>
+          <span className="font-tech text-[11px] text-cyan-300 font-bold">
+            {sessionFilter === 'REGULAR' ? 'Horário Oficial B3' : 'Visão Expandida'}
+          </span>
+        </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-          {confluenceData
-            .filter((_, idx) => idx % 4 === 0 || idx === confluenceData.length - 1)
-            .map((p, idx) => (
-              <div
-                key={idx}
-                className={`px-3 py-1.5 rounded-lg border text-center shrink-0 ${
-                  p.scenario === 'ALTA'
-                    ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
-                    : p.scenario === 'BAIXA'
-                    ? 'bg-rose-950/60 border-rose-500/40 text-rose-300'
-                    : 'bg-amber-950/60 border-amber-500/40 text-amber-300'
-                }`}
-              >
-                <span className="font-mono text-[10px] text-slate-400 block">{p.formattedTime}</span>
-                <span className="font-orbitron font-bold text-xs">
-                  {p.scenario === 'ALTA' ? '🟢 ALTA' : p.scenario === 'BAIXA' ? '🔴 BAIXA' : '🟡 AGUARDAR'}
-                </span>
-              </div>
-            ))}
+          {displayData
+            .filter((p, idx) => {
+              if (sessionFilter === 'REGULAR') {
+                const parts = p.formattedTime.split(':');
+                const m = Number(parts[1] || 0);
+                return m === 0 || idx === displayData.length - 1 || p.isCurrentNow;
+              }
+              return idx % 4 === 0 || idx === displayData.length - 1 || p.isCurrentNow;
+            })
+            .map((p, idx) => {
+              const isNow = !!p.isCurrentNow;
+              const isFuture = !!p.isFuture;
+
+              let cardStyle = 'bg-amber-950/60 border-amber-500/40 text-amber-300';
+              let badgeText = '🟡 AGUARDAR';
+
+              if (isFuture) {
+                cardStyle = 'bg-slate-950/40 border-dashed border-slate-700/60 text-slate-500';
+                badgeText = '⏳ AGUARDAR';
+              } else if (p.scenario === 'ALTA') {
+                cardStyle = 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300';
+                badgeText = '🟢 ALTA';
+              } else if (p.scenario === 'BAIXA') {
+                cardStyle = 'bg-rose-950/60 border-rose-500/40 text-rose-300';
+                badgeText = '🔴 BAIXA';
+              }
+
+              return (
+                <div
+                  key={idx}
+                  className={`px-3 py-1.5 rounded-lg border text-center shrink-0 transition-all ${cardStyle} ${
+                    isNow ? 'ring-2 ring-cyan-400/80 shadow-[0_0_15px_rgba(6,182,212,0.4)] bg-cyan-950/80' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-center gap-1">
+                    <span className="font-mono text-[10px] text-slate-300 block">{p.formattedTime}</span>
+                    {isNow && <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />}
+                  </div>
+                  <span className="font-orbitron font-bold text-xs">
+                    {badgeText}
+                  </span>
+                </div>
+              );
+            })}
         </div>
       </div>
     </section>

@@ -15,30 +15,33 @@ import { soundFX } from '../utils/soundEffects';
 
 interface QuantPositionCalculatorProps {
   initialAsset?: 'DOL' | 'IND';
-  currentDollarPrice: number;
-  currentIndexPrice: number;
+  currentDollarPrice?: number;
+  currentIndexPrice?: number;
   onAskJarvis: (prompt: string) => void;
 }
 
 export const QuantPositionCalculator: React.FC<QuantPositionCalculatorProps> = ({
   initialAsset = 'DOL',
-  currentDollarPrice,
-  currentIndexPrice,
+  currentDollarPrice = 5.405,
+  currentIndexPrice = 134250,
   onAskJarvis,
 }) => {
+  const safeDolPrice = typeof currentDollarPrice === 'number' && !isNaN(currentDollarPrice) && currentDollarPrice > 0 ? currentDollarPrice : 5.405;
+  const safeIndPrice = typeof currentIndexPrice === 'number' && !isNaN(currentIndexPrice) && currentIndexPrice > 0 ? currentIndexPrice : 134250;
+
   const [asset, setAsset] = useState<'DOL' | 'IND'>(initialAsset);
   const [operationType, setOperationType] = useState<'BUY' | 'SELL'>('BUY');
   const [contracts, setContracts] = useState<number>(2);
 
   // Prices
   const [entryPrice, setEntryPrice] = useState<number>(
-    asset === 'DOL' ? currentDollarPrice : currentIndexPrice
+    asset === 'DOL' ? safeDolPrice : safeIndPrice
   );
   const [targetPrice, setTargetPrice] = useState<number>(
-    asset === 'DOL' ? +(currentDollarPrice + 0.05).toFixed(3) : currentIndexPrice + 800
+    asset === 'DOL' ? +(safeDolPrice + 0.05).toFixed(3) : safeIndPrice + 800
   );
   const [stopLoss, setStopLoss] = useState<number>(
-    asset === 'DOL' ? +(currentDollarPrice - 0.025).toFixed(3) : currentIndexPrice - 400
+    asset === 'DOL' ? +(safeDolPrice - 0.025).toFixed(3) : safeIndPrice - 400
   );
 
   // Switch asset handler
@@ -46,13 +49,13 @@ export const QuantPositionCalculator: React.FC<QuantPositionCalculatorProps> = (
     soundFX.playBlip(1000);
     setAsset(newAsset);
     if (newAsset === 'DOL') {
-      setEntryPrice(currentDollarPrice);
-      setTargetPrice(+(currentDollarPrice + 0.05).toFixed(3));
-      setStopLoss(+(currentDollarPrice - 0.025).toFixed(3));
+      setEntryPrice(safeDolPrice);
+      setTargetPrice(+(safeDolPrice + 0.05).toFixed(3));
+      setStopLoss(+(safeDolPrice - 0.025).toFixed(3));
     } else {
-      setEntryPrice(currentIndexPrice);
-      setTargetPrice(currentIndexPrice + 800);
-      setStopLoss(currentIndexPrice - 400);
+      setEntryPrice(safeIndPrice);
+      setTargetPrice(safeIndPrice + 800);
+      setStopLoss(safeIndPrice - 400);
     }
   };
 
@@ -237,7 +240,7 @@ export const QuantPositionCalculator: React.FC<QuantPositionCalculatorProps> = (
                 R$ {financialGain.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </div>
               <span className="text-[11px] text-emerald-300/80">
-                {isDollar ? `${(gainPoints * 1000).toFixed(1)} pts de Dólar` : `${gainPoints.toFixed(0)} pts de Índice`}
+                {isDollar ? `${((gainPoints || 0) * 1000).toFixed(1)} pts de Dólar` : `${(gainPoints || 0).toFixed(0)} pts de Índice`}
               </span>
             </div>
 
@@ -245,10 +248,10 @@ export const QuantPositionCalculator: React.FC<QuantPositionCalculatorProps> = (
             <div className="p-3.5 rounded-xl bg-slate-950/90 border border-rose-500/30">
               <span className="text-[10px] text-slate-400 uppercase block">PERDA MÁXIMA (STOP LOSS):</span>
               <div className="font-orbitron font-bold text-lg text-rose-400 mt-1">
-                R$ {financialLoss.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                R$ {(financialLoss || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
               </div>
               <span className="text-[11px] text-rose-300/80">
-                {isDollar ? `${(lossPoints * 1000).toFixed(1)} pts de Dólar` : `${lossPoints.toFixed(0)} pts de Índice`}
+                {isDollar ? `${((lossPoints || 0) * 1000).toFixed(1)} pts de Dólar` : `${(lossPoints || 0).toFixed(0)} pts de Índice`}
               </span>
             </div>
 
@@ -273,16 +276,16 @@ export const QuantPositionCalculator: React.FC<QuantPositionCalculatorProps> = (
             </div>
           </div>
 
-          {/* JARVIS Recommendation */}
-          <div className="p-3.5 rounded-xl bg-slate-950 border border-cyan-500/30 font-tech text-xs">
-            <div className="flex items-center gap-1.5 text-cyan-300 font-bold mb-1">
+          {/* MCP Macro Hub Recommendation */}
+          <div className="p-3.5 rounded-xl bg-zinc-950 border border-violet-900/40 font-mono text-xs">
+            <div className="flex items-center gap-1.5 text-violet-300 font-bold mb-1">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              VEREDITO DE GESTÃO DE RISCO J.A.R.V.I.S.:
+              VEREDITO DE GESTÃO DE RISCO MCP MACRO HUB:
             </div>
-            <p className="text-slate-300 text-[11px] leading-relaxed">
+            <p className="text-zinc-300 text-[11px] leading-relaxed">
               {Number(riskRewardRatio) >= 2
-                ? `Operação taticamente recomendada com ${contracts} contrato(s). A assimetria de retorno de 1:${riskRewardRatio} compensa o risco assumido.`
-                : 'Aviso: Esta configuração oferece uma relação risco/retorno inferior ao ideal de 1:2. Considere estender o alvo ou afunilar o stop loss técnico.'}
+                ? `Operação quantitativamente aprovada com ${contracts} contrato(s). A assimetria de retorno de 1:${riskRewardRatio} cumpre os critérios técnicos de confluência.`
+                : 'Aviso: Esta configuração oferece uma relação risco/retorno inferior ao ideal de 1:2. Considere estender o alvo técnico ou ajustar o stop loss.'}
             </p>
           </div>
 
@@ -290,13 +293,13 @@ export const QuantPositionCalculator: React.FC<QuantPositionCalculatorProps> = (
             onClick={() => {
               soundFX.playBlip(1100);
               onAskJarvis(
-                `J.A.R.V.I.S., avalie minha simulação de ${operationType === 'BUY' ? 'COMPRA' : 'VENDA'} de ${contracts} contratos no ${asset === 'DOL' ? 'Mini Dólar' : 'Mini Índice'} com Entrada em ${entryPrice}, Alvo em ${targetPrice} e Stop em ${stopLoss}. Você aprova essa operação?`
+                `MCP Macro Hub, avalie a simulação técnica de ${operationType === 'BUY' ? 'COMPRA' : 'VENDA'} de ${contracts} contrato(s) no ${asset === 'DOL' ? 'Mini Dólar' : 'Mini Índice'} com Entrada em ${entryPrice}, Alvo em ${targetPrice} e Stop em ${stopLoss}. Qual o veredito macro e quantitativo?`
               );
             }}
-            className="w-full py-3 rounded-xl bg-cyan-500/20 border border-cyan-500/40 hover:bg-cyan-500/30 text-cyan-100 font-tech text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(6,182,212,0.15)]"
+            className="w-full py-3 rounded-xl bg-violet-600/25 border border-violet-500/40 hover:bg-violet-600/35 text-violet-100 font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-[0_0_15px_rgba(139,92,246,0.2)]"
           >
-            <Sparkles className="w-4 h-4 text-cyan-400" />
-            Validar Estratégia de Risco com J.A.R.V.I.S.
+            <Sparkles className="w-4 h-4 text-violet-400" />
+            Validar Estratégia de Risco no MCP Macro Hub
           </button>
         </div>
       </div>

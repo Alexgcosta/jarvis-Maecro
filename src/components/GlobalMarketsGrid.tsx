@@ -7,19 +7,20 @@ interface GlobalMarketsGridProps {
 }
 
 export const GlobalMarketsGrid: React.FC<GlobalMarketsGridProps> = ({ indicators }) => {
-  // Filter key global indicators
+  // Filter key global indicators requested by user
   const keyAssetKeys = [
     'SP500',
     'NASDAQ',
-    'DOW',
     'VIX',
     'DXY',
+    'TREASURY10Y',
+    'TREASURY2Y',
+    'GOLD',
+    'COPPER',
     'BRENT',
     'WTI',
-    'GOLD',
-    'SILVER',
-    'COPPER',
-    'TREASURY10Y',
+    'IRON_ORE',
+    'SOY',
     'EWZ',
   ];
 

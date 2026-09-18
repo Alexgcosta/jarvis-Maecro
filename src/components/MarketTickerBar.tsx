@@ -1,31 +1,35 @@
 import React from 'react';
 import { MacroMarketQuote } from '../types';
-import { TrendingUp, TrendingDown, DollarSign, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface MarketTickerBarProps {
   quotes: MacroMarketQuote[];
+  onSelectQuote?: (ticker: string) => void;
 }
 
-export const MarketTickerBar: React.FC<MarketTickerBarProps> = ({ quotes }) => {
+export const MarketTickerBar: React.FC<MarketTickerBarProps> = ({ quotes, onSelectQuote }) => {
   return (
-    <div className="w-full bg-slate-950/90 border-b border-cyan-500/25 backdrop-blur-md overflow-x-auto no-scrollbar py-2 px-4 shadow-[0_2px_15px_rgba(6,182,212,0.1)]">
-      <div className="flex items-center gap-6 min-w-max">
-        <div className="flex items-center gap-1.5 text-cyan-400 font-tech text-[11px] uppercase tracking-wider pr-2 border-r border-cyan-500/20">
-          <Activity className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
-          <span>STARK QUANT FEED // REAL-TIME MACRO:</span>
+    <div className="w-full bg-zinc-950 border-b border-zinc-850 overflow-x-auto py-1.5 px-4">
+      <div className="flex items-center gap-2.5 min-w-max">
+        <div className="flex items-center gap-2 text-zinc-400 font-mono text-[10px] uppercase tracking-wider pr-3 border-r border-zinc-800">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-zinc-300 font-semibold">COTAÇÕES GLOBAIS:</span>
         </div>
 
         {quotes.map((quote) => {
           return (
             <div
               key={quote.ticker}
-              className="flex items-center gap-2 font-tech text-xs bg-slate-900/60 px-3 py-1 rounded-lg border border-cyan-500/20 hover:border-cyan-400/50 transition-colors cursor-pointer"
+              onClick={() => onSelectQuote && onSelectQuote(quote.ticker)}
+              className="flex items-center gap-2 font-mono text-xs bg-zinc-900/90 px-2.5 py-1 rounded-md border border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-850 transition-all cursor-pointer group"
               title={`${quote.name} (${quote.category})`}
             >
-              <span className="text-slate-300 font-semibold">{quote.ticker}</span>
-              <span className="text-cyan-100 font-bold">{quote.price}</span>
+              <span className="text-zinc-400 font-medium group-hover:text-zinc-200 transition-colors">
+                {quote.ticker}
+              </span>
+              <span className="text-zinc-200 font-semibold tabular-nums">{quote.price}</span>
               <span
-                className={`flex items-center text-[11px] font-bold ${
+                className={`flex items-center text-[11px] font-semibold tabular-nums ${
                   quote.positive ? 'text-emerald-400' : 'text-rose-400'
                 }`}
               >
@@ -43,3 +47,5 @@ export const MarketTickerBar: React.FC<MarketTickerBarProps> = ({ quotes }) => {
     </div>
   );
 };
+
+

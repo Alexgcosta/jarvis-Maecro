@@ -2,19 +2,35 @@
 
 @layer base {
   :root {
-    --font-orbitron: 'Orbitron', sans-serif;
-    --font-rajdhani: 'Rajdhani', sans-serif;
-    --font-mono: 'Share Tech Mono', monospace;
-    --font-body: 'Plus Jakarta Sans', sans-serif;
+    --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
   }
 }
 
+body {
+  font-family: var(--font-sans);
+  background-color: #09090b;
+  color: #f4f4f5;
+  letter-spacing: -0.01em;
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Backward-compatibility classes mapped to clean modern fonts */
 .font-orbitron {
-  font-family: var(--font-orbitron);
+  font-family: var(--font-heading);
+  letter-spacing: -0.02em;
 }
 
 .font-rajdhani {
-  font-family: var(--font-rajdhani);
+  font-family: var(--font-sans);
 }
 
 .font-tech {
@@ -22,105 +38,85 @@
 }
 
 .font-body {
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
 }
 
-/* Sci-fi Hologram and HUD FX */
+/* Modern Clean Financial Card */
+.fintech-card {
+  background-color: rgba(24, 24, 27, 0.7);
+  border: 1px solid rgba(63, 63, 70, 0.4);
+  backdrop-filter: blur(12px);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.fintech-card:hover {
+  border-color: rgba(113, 113, 122, 0.5);
+}
+
+/* Subtle clean border replacements for legacy classes */
 .hud-border {
-  border: 1px solid rgba(6, 182, 212, 0.25);
-  box-shadow: 0 0 15px rgba(6, 182, 212, 0.08), inset 0 0 15px rgba(6, 182, 212, 0.04);
+  border: 1px solid rgba(63, 63, 70, 0.5);
+  background: rgba(24, 24, 27, 0.6);
+  border-radius: 0.75rem;
 }
 
 .hud-border-amber {
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.08), inset 0 0 15px rgba(245, 158, 11, 0.04);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(24, 24, 27, 0.6);
+  border-radius: 0.75rem;
 }
 
 .hud-border-red {
-  border: 1px solid rgba(239, 68, 68, 0.35);
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15), inset 0 0 15px rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  background: rgba(24, 24, 27, 0.6);
+  border-radius: 0.75rem;
 }
 
 .hud-glow {
-  text-shadow: 0 0 8px rgba(34, 211, 238, 0.6), 0 0 20px rgba(6, 182, 212, 0.3);
+  text-shadow: none;
 }
 
 .hud-glow-amber {
-  text-shadow: 0 0 8px rgba(245, 158, 11, 0.6), 0 0 20px rgba(245, 158, 11, 0.3);
+  text-shadow: none;
 }
 
 .hud-glow-red {
-  text-shadow: 0 0 8px rgba(239, 68, 68, 0.6), 0 0 20px rgba(239, 68, 68, 0.3);
+  text-shadow: none;
 }
 
 .scanlines {
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%, 
-    rgba(0, 0, 0, 0.25) 50%
-  ), linear-gradient(
-    90deg,
-    rgba(255, 0, 0, 0.03),
-    rgba(0, 255, 0, 0.01),
-    rgba(0, 0, 255, 0.03)
-  );
-  background-size: 100% 3px, 6px 100%;
+  background: none;
 }
 
 .grid-bg {
-  background-size: 30px 30px;
+  background-size: 32px 32px;
   background-image: 
-    linear-gradient(to right, rgba(6, 182, 212, 0.05) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(6, 182, 212, 0.05) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
 }
 
 .radar-grid {
-  background-size: 40px 40px;
+  background-size: 32px 32px;
   background-image: 
-    radial-gradient(circle, rgba(6, 182, 212, 0.12) 1px, transparent 1px);
+    radial-gradient(circle, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
 }
 
-/* Custom HUD Scrollbar */
+/* Modern Minimal Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(9, 9, 11, 0.8);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(6, 182, 212, 0.4);
-  border-radius: 2px;
+  background: rgba(63, 63, 70, 0.5);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(6, 182, 212, 0.8);
-}
-
-@keyframes spin-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes spin-reverse-slow {
-  from { transform: rotate(360deg); }
-  to { transform: rotate(0deg); }
-}
-
-@keyframes pulse-energy {
-  0%, 100% { opacity: 0.7; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.04); filter: drop-shadow(0 0 25px rgba(6, 182, 212, 0.8)); }
-}
-
-.animate-spin-slow {
-  animation: spin-slow 20s linear infinite;
-}
-
-.animate-spin-reverse-slow {
-  animation: spin-reverse-slow 25s linear infinite;
-}
-
-.animate-pulse-energy {
-  animation: pulse-energy 3s ease-in-out infinite;
+  background: rgba(113, 113, 122, 0.7);
 }

@@ -70,8 +70,8 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({ onSyncIndicators }) =>
   const fetchKeys = async () => {
     setLoading(true);
     try {
-      const res拼 = await fetch('/api/keys');
-      const data = await res拼.json();
+      const res = await fetch('/api/keys');
+      const data = await res.json();
       if (data && data.keys) {
         setKeys(data.keys);
         setCustomKeys(data.customKeys || []);
@@ -99,7 +99,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({ onSyncIndicators }) =>
     fetchKeys();
   }, []);
 
-  const handleToggleVisibility不易 = (id: string) => {
+  const handleToggleVisibility = (id: string) => {
     soundFX.playClick();
     setVisibleMap((prev) => ({ ...prev, [id]: !prev[id] }));
   };
@@ -126,8 +126,8 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({ onSyncIndicators }) =>
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, key: value }),
       });
-      const data不易 = await res.json();
-      if (data不易.success) {
+      const data = await res.json();
+      if (data.success) {
         soundFX.playSuccess();
         setSavedMap((prev) => ({ ...prev, [id]: true }));
         setGlobalMessage({
@@ -142,7 +142,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({ onSyncIndicators }) =>
         if (onSyncIndicators) onSyncIndicators();
         fetchKeys();
       } else {
-        setGlobalMessage({ type: 'error', text: data不易.error || 'Falha ao salvar chave no servidor.' });
+        setGlobalMessage({ type: 'error', text: data.error || 'Falha ao salvar chave no servidor.' });
       }
     } catch (err: any) {
       setGlobalMessage({ type: 'error', text: `Erro de comunicação: ${err.message}` });
@@ -264,7 +264,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({ onSyncIndicators }) =>
     }
   };
 
-  const handleDeleteCustomKey不易 = async (id: string, name: string) => {
+  const handleDeleteCustomKey = async (id: string, name: string) => {
     if (!confirm(`Deseja remover a chave personalizada "${name}"?`)) return;
     soundFX.playClick();
     try {
@@ -293,7 +293,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({ onSyncIndicators }) =>
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `jarvis_api_keys_${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `macrodesk_api_keys_${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
     soundFX.playSuccess();
@@ -528,7 +528,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({ onSyncIndicators }) =>
 
                     {isCustom && (
                       <button
-                        onClick={() => handleDeleteCustomKey不易(item.id, item.name)}
+                        onClick={() => handleDeleteCustomKey(item.id, item.name)}
                         className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 border border-rose-500/40 text-rose-300 transition-colors"
                         title="Excluir Chave Personalizada"
                       >
@@ -561,7 +561,7 @@ export const ApiKeysView: React.FC<ApiKeysViewProps> = ({ onSyncIndicators }) =>
                       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                         <button
                           type="button"
-                          onClick={() => handleToggleVisibility不易(item.id)}
+                          onClick={() => handleToggleVisibility(item.id)}
                           className="p-1 rounded text-slate-400 hover:text-cyan-300 transition-colors"
                           title={isVisible ? 'Ocultar chave' : 'Exibir chave'}
                         >

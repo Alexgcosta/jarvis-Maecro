@@ -148,7 +148,9 @@ export const ConfiguracoesView: React.FC<ConfiguracoesViewProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {indicators.map((ind) => {
-            const currentVal = localWeights[ind.key] ?? ind.weight;
+            const currentVal = typeof (localWeights[ind.key] ?? ind.weight) === 'number'
+              ? (localWeights[ind.key] ?? ind.weight)
+              : 1.0;
             return (
               <div
                 key={ind.key}
@@ -162,7 +164,7 @@ export const ConfiguracoesView: React.FC<ConfiguracoesViewProps> = ({
                     <span className="font-tech text-[10px] text-slate-400">{ind.category}</span>
                   </div>
                   <span className="font-mono text-sm font-bold text-cyan-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
-                    {currentVal.toFixed(2)}x
+                    {(currentVal ?? 1.0).toFixed(2)}x
                   </span>
                 </div>
 
@@ -171,8 +173,8 @@ export const ConfiguracoesView: React.FC<ConfiguracoesViewProps> = ({
                   min="0"
                   max="3"
                   step="0.05"
-                  value={currentVal}
-                  onChange={(e) => handleWeightChange(ind.key, parseFloat(e.target.value))}
+                  value={currentVal ?? 1.0}
+                  onChange={(e) => handleWeightChange(ind.key, parseFloat(e.target.value) || 1.0)}
                   className="w-full accent-cyan-400 cursor-pointer h-1.5 bg-slate-800 rounded-lg"
                 />
 

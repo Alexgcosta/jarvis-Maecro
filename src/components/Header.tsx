@@ -119,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({
                   RASTREADOR MACRO
                 </span>
                 <span className="hidden sm:inline font-tech text-[10px] px-1.5 py-0.5 rounded bg-blue-950/60 border border-blue-400/30 text-blue-300">
-                  JARVIS MODE
+                  QUANT PRO
                 </span>
               </div>
               <p className="font-tech text-xs text-slate-400 hidden sm:block">

@@ -37,14 +37,14 @@ export const WhatChangedPanel: React.FC<WhatChangedPanelProps> = ({
     const dxyInd = indicators.find((i) => i.id === 'DXY');
 
     // 1. Dollar (Real quotes)
-    const usdCur = usdInd ? usdInd.value : (currentWdoBias?.currentPrice || 5.405);
-    const usdChangePct = usdInd ? usdInd.changePercent : (currentWdoBias?.wdoReturn || -0.35);
+    const usdCur = typeof usdInd?.value === 'number' && !isNaN(usdInd.value) ? usdInd.value : (currentWdoBias?.currentPrice || 5.405);
+    const usdChangePct = typeof usdInd?.changePercent === 'number' && !isNaN(usdInd.changePercent) ? usdInd.changePercent : (currentWdoBias?.wdoReturn || -0.35);
     const usdPrev = usdChangePct !== -100 ? usdCur / (1 + usdChangePct / 100) : usdCur;
     const usdDiffPts = (usdCur - usdPrev) * 1000; // Pontos de dólar
 
     // 2. WIN (Real quotes)
-    const winCur = winInd ? winInd.value : (currentWinBias?.currentPrice || 134250);
-    const winChangePct = winInd ? winInd.changePercent : (currentWinBias?.winReturn || 0.42);
+    const winCur = typeof winInd?.value === 'number' && !isNaN(winInd.value) ? winInd.value : (currentWinBias?.currentPrice || 134250);
+    const winChangePct = typeof winInd?.changePercent === 'number' && !isNaN(winInd.changePercent) ? winInd.changePercent : (currentWinBias?.winReturn || 0.42);
     const winPrev = winChangePct !== -100 ? winCur / (1 + winChangePct / 100) : winCur;
 
     // 3. Global Sentiment Score
@@ -53,37 +53,37 @@ export const WhatChangedPanel: React.FC<WhatChangedPanelProps> = ({
     const sentDelta = sentScore - prevSentScore;
 
     // 4. VIX
-    const vixCur = vixInd ? vixInd.value : 14.92;
-    const vixChangePct = vixInd ? vixInd.changePercent : -5.57;
+    const vixCur = typeof vixInd?.value === 'number' && !isNaN(vixInd.value) ? vixInd.value : 14.92;
+    const vixChangePct = typeof vixInd?.changePercent === 'number' && !isNaN(vixInd.changePercent) ? vixInd.changePercent : -5.57;
     const vixPrev = vixChangePct !== -100 ? vixCur / (1 + vixChangePct / 100) : 15.80;
 
     // 5. US10Y
-    const us10yCur = us10yInd ? us10yInd.value : 4.22;
-    const us10yChangePct = us10yInd ? us10yInd.changePercent : -0.02;
+    const us10yCur = typeof us10yInd?.value === 'number' && !isNaN(us10yInd.value) ? us10yInd.value : 4.22;
+    const us10yChangePct = typeof us10yInd?.changePercent === 'number' && !isNaN(us10yInd.changePercent) ? us10yInd.changePercent : -0.02;
     const us10yPrev = us10yCur - (us10yChangePct * 10);
 
     return [
       {
         asset: 'Dólar Futuro / Spot (WDO)',
-        previousValue: `R$ ${usdPrev.toFixed(4).replace('.', ',')}`,
-        currentValue: `R$ ${usdCur.toFixed(4).replace('.', ',')}`,
-        delta: `${usdChangePct >= 0 ? '+' : ''}${usdChangePct.toFixed(2)}% (${usdDiffPts >= 0 ? '+' : ''}${usdDiffPts.toFixed(1)} pts)`,
-        isPositive: usdChangePct <= 0, // Dólar caindo é positivo para risco/moeda local
-        isNegative: usdChangePct > 0,
-        significance: Math.abs(usdChangePct) > 0.5 ? 'ALTA' : 'MÉDIA',
-        comment: usdChangePct <= 0
+        previousValue: `R$ ${(usdPrev ?? 5.405).toFixed(4).replace('.', ',')}`,
+        currentValue: `R$ ${(usdCur ?? 5.405).toFixed(4).replace('.', ',')}`,
+        delta: `${(usdChangePct ?? 0) >= 0 ? '+' : ''}${(usdChangePct ?? 0).toFixed(2)}% (${(usdDiffPts ?? 0) >= 0 ? '+' : ''}${(usdDiffPts ?? 0).toFixed(1)} pts)`,
+        isPositive: (usdChangePct ?? 0) <= 0, // Dólar caindo é positivo para risco/moeda local
+        isNegative: (usdChangePct ?? 0) > 0,
+        significance: Math.abs(usdChangePct ?? 0) > 0.5 ? 'ALTA' : 'MÉDIA',
+        comment: (usdChangePct ?? 0) <= 0
           ? 'Descompressão cambial com fluxo e alívio do DXY externo.'
           : 'Pressão compradora no câmbio em ajuste com aversão a risco.',
       },
       {
         asset: 'Mini Índice Futuro (WIN)',
-        previousValue: `${Math.round(winPrev).toLocaleString('pt-BR')} pts`,
-        currentValue: `${Math.round(winCur).toLocaleString('pt-BR')} pts`,
-        delta: `${winChangePct >= 0 ? '+' : ''}${winChangePct.toFixed(2)}%`,
-        isPositive: winChangePct >= 0,
-        isNegative: winChangePct < 0,
-        significance: Math.abs(winChangePct) > 0.6 ? 'ALTA' : 'MÉDIA',
-        comment: winChangePct >= 0
+        previousValue: `${Math.round(winPrev ?? 134250).toLocaleString('pt-BR')} pts`,
+        currentValue: `${Math.round(winCur ?? 134250).toLocaleString('pt-BR')} pts`,
+        delta: `${(winChangePct ?? 0) >= 0 ? '+' : ''}${(winChangePct ?? 0).toFixed(2)}%`,
+        isPositive: (winChangePct ?? 0) >= 0,
+        isNegative: (winChangePct ?? 0) < 0,
+        significance: Math.abs(winChangePct ?? 0) > 0.6 ? 'ALTA' : 'MÉDIA',
+        comment: (winChangePct ?? 0) >= 0
           ? 'Tração compradora acompanhando bolsas globais e apetite por risco.'
           : 'Correção técnica pressionada por aversão ou juros futuros.',
       },
@@ -99,9 +99,9 @@ export const WhatChangedPanel: React.FC<WhatChangedPanelProps> = ({
       },
       {
         asset: 'Índice de Volatilidade VIX',
-        previousValue: vixPrev.toFixed(2),
-        currentValue: vixCur.toFixed(2),
-        delta: `${vixChangePct >= 0 ? '+' : ''}${vixChangePct.toFixed(2)}%`,
+        previousValue: (vixPrev ?? 15.8).toFixed(2),
+        currentValue: (vixCur ?? 14.92).toFixed(2),
+        delta: `${(vixChangePct ?? 0) >= 0 ? '+' : ''}${(vixChangePct ?? 0).toFixed(2)}%`,
         isPositive: vixChangePct <= 0,
         isNegative: vixChangePct > 0,
         significance: Math.abs(vixChangePct) > 4 ? 'ALTA' : 'MÉDIA',

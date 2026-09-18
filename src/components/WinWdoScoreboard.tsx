@@ -1,6 +1,7 @@
 import React from 'react';
 import { TrendingUp, TrendingDown, ArrowRightLeft, Shield } from 'lucide-react';
 import { BiasClassification } from '../types/macroTypes';
+import { SpeedometerGauge } from './SpeedometerGauge';
 
 interface WinWdoScoreboardProps {
   winBiasScore: number;
@@ -38,36 +39,36 @@ export const WinWdoScoreboard: React.FC<WinWdoScoreboardProps> = ({
   return (
     <section
       id="panel-win-wdo-scoreboard"
-      className="p-5 rounded-2xl bg-slate-900/80 border border-cyan-500/25 backdrop-blur-md shadow-[0_4px_20px_rgba(0,0,0,0.3)]"
+      className="p-5 rounded-2xl bg-zinc-900/90 border border-violet-900/40 shadow-[0_4px_25px_rgba(0,0,0,0.4)] backdrop-blur-md"
     >
       <div className="flex items-center justify-between gap-3 mb-4">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-cyan-950 border border-cyan-400/40 text-cyan-300">
+          <div className="p-1.5 rounded-lg bg-zinc-950 border border-violet-500/40 text-violet-400">
             <ArrowRightLeft className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-orbitron font-extrabold text-sm sm:text-base text-slate-100">
+            <h3 className="font-heading font-bold text-sm sm:text-base text-zinc-100">
               PLACAR WIN × WDO: COMPARAÇÃO DE VIÉS DIRECIONAL COM PREÇO REAL
             </h3>
-            <span className="font-tech text-xs text-slate-400">
+            <span className="font-mono text-xs text-zinc-400">
               Cálculo quantitativo vinculado a cotações reais do Mosca Broker e correlação EWZ offshore
             </span>
           </div>
         </div>
 
-        <span className="font-tech text-xs px-2.5 py-0.5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300">
+        <span className="font-mono text-xs px-2.5 py-0.5 rounded-full bg-zinc-950 border border-violet-500/40 text-violet-300">
           CONFRONTO DIRECIONAL
         </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Left: WIN Card */}
-        <div className="p-4 rounded-xl bg-slate-950/70 border border-emerald-500/30 flex flex-col justify-between">
+        <div className="p-4 rounded-xl bg-zinc-950/80 border border-zinc-800 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-emerald-400" />
-                <span className="font-orbitron font-bold text-xs text-emerald-300">
+                <span className="font-heading font-bold text-xs text-emerald-300">
                   MINI ÍNDICE (WIN)
                 </span>
               </div>
@@ -75,25 +76,29 @@ export const WinWdoScoreboard: React.FC<WinWdoScoreboardProps> = ({
                 <span className="font-mono text-xs font-bold text-emerald-400 block">
                   {winPrice.toLocaleString('pt-BR')} pts
                 </span>
-                <span className="font-tech text-[10px] text-emerald-400/80">
+                <span className="font-mono text-[10px] text-emerald-400/80">
                   {winReturn >= 0 ? `+${winReturn.toFixed(2)}%` : `${winReturn.toFixed(2)}%`}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-baseline justify-between my-2">
-              <span className="font-tech text-xs text-slate-400">Score Direcional:</span>
-              <span
-                className={`font-orbitron font-bold text-2xl ${
-                  winBiasScore >= 0 ? 'text-emerald-400' : 'text-rose-400'
-                }`}
-              >
-                {winBiasScore >= 0 ? `+${winBiasScore}` : winBiasScore}
-              </span>
+            {/* Speedometer Gauge for WIN */}
+            <div className="py-2 flex justify-center bg-zinc-900/60 rounded-xl border border-zinc-800/80 my-2">
+              <SpeedometerGauge
+                id="gauge-win-bias"
+                value={winBiasScore}
+                min={-100}
+                max={100}
+                unit="pts"
+                size="sm"
+                title="Score Direcional WIN"
+                subtitle={winClassification}
+                colorScheme="bidirectional"
+              />
             </div>
 
-            <div className="flex items-center justify-between mt-1">
-              <span className="inline-block px-2.5 py-0.5 rounded text-[11px] font-tech font-bold bg-emerald-950/80 border border-emerald-500/40 text-emerald-300">
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-800">
+              <span className="inline-block px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-950/80 border border-emerald-500/40 text-emerald-300">
                 {winClassification}
               </span>
               <div className="flex items-center gap-2 font-mono text-[11px]">
@@ -103,12 +108,12 @@ export const WinWdoScoreboard: React.FC<WinWdoScoreboardProps> = ({
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-800 space-y-1">
-            <span className="font-tech text-[10px] text-slate-400 uppercase tracking-wider block">
+          <div className="mt-4 pt-3 border-t border-zinc-800 space-y-1">
+            <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-wider block">
               Drivers Confluentes WIN:
             </span>
             {winDrivers.map((d, i) => (
-              <div key={i} className="text-[11px] font-tech text-slate-300 flex items-center gap-1.5">
+              <div key={i} className="text-[11px] font-mono text-zinc-300 flex items-center gap-1.5">
                 <span className="text-emerald-400">✓</span>
                 <span>{d}</span>
               </div>
@@ -117,12 +122,12 @@ export const WinWdoScoreboard: React.FC<WinWdoScoreboardProps> = ({
         </div>
 
         {/* Right: WDO Card */}
-        <div className="p-4 rounded-xl bg-slate-950/70 border border-amber-500/30 flex flex-col justify-between">
+        <div className="p-4 rounded-xl bg-zinc-950/80 border border-zinc-800 flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <TrendingDown className="w-4 h-4 text-amber-400" />
-                <span className="font-orbitron font-bold text-xs text-amber-300">
+                <span className="font-heading font-bold text-xs text-amber-300">
                   MINI DÓLAR (WDO)
                 </span>
               </div>
@@ -130,25 +135,29 @@ export const WinWdoScoreboard: React.FC<WinWdoScoreboardProps> = ({
                 <span className="font-mono text-xs font-bold text-amber-300 block">
                   R$ {wdoPrice.toFixed(4).replace('.', ',')}
                 </span>
-                <span className="font-tech text-[10px] text-rose-400">
+                <span className="font-mono text-[10px] text-rose-400">
                   {wdoReturn >= 0 ? `+${wdoReturn.toFixed(2)}%` : `${wdoReturn.toFixed(2)}%`}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-baseline justify-between my-2">
-              <span className="font-tech text-xs text-slate-400">Score Direcional:</span>
-              <span
-                className={`font-orbitron font-bold text-2xl ${
-                  wdoBiasScore >= 0 ? 'text-amber-300' : 'text-cyan-300'
-                }`}
-              >
-                {wdoBiasScore >= 0 ? `+${wdoBiasScore}` : wdoBiasScore}
-              </span>
+            {/* Speedometer Gauge for WDO */}
+            <div className="py-2 flex justify-center bg-zinc-900/60 rounded-xl border border-zinc-800/80 my-2">
+              <SpeedometerGauge
+                id="gauge-wdo-bias"
+                value={wdoBiasScore}
+                min={-100}
+                max={100}
+                unit="pts"
+                size="sm"
+                title="Score Direcional WDO"
+                subtitle={wdoClassification}
+                colorScheme="bidirectional"
+              />
             </div>
 
-            <div className="flex items-center justify-between mt-1">
-              <span className="inline-block px-2.5 py-0.5 rounded text-[11px] font-tech font-bold bg-amber-950/80 border border-amber-500/40 text-amber-300">
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-zinc-800">
+              <span className="inline-block px-2.5 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-950/80 border border-amber-500/40 text-amber-300">
                 {wdoClassification}
               </span>
               <div className="flex items-center gap-2 font-mono text-[11px]">
@@ -158,12 +167,12 @@ export const WinWdoScoreboard: React.FC<WinWdoScoreboardProps> = ({
             </div>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-slate-800 space-y-1">
-            <span className="font-tech text-[10px] text-slate-400 uppercase tracking-wider block">
+          <div className="mt-4 pt-3 border-t border-zinc-800 space-y-1">
+            <span className="font-mono text-[10px] text-zinc-400 uppercase tracking-wider block">
               Drivers Confluentes WDO:
             </span>
             {wdoDrivers.map((d, i) => (
-              <div key={i} className="text-[11px] font-tech text-slate-300 flex items-center gap-1.5">
+              <div key={i} className="text-[11px] font-mono text-zinc-300 flex items-center gap-1.5">
                 <span className="text-amber-400">✓</span>
                 <span>{d}</span>
               </div>

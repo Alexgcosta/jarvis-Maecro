@@ -138,7 +138,7 @@ class SpeechEngine {
     }
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = language === 'en-US' ? 'en-GB' : 'pt-BR'; // GB English fits JARVIS well!
+    utterance.lang = language === 'en-US' ? 'en-GB' : 'pt-BR'; // GB English for executive clarity
     utterance.rate = 1.02;
     utterance.pitch = 0.95; // Slightly deeper, sophisticated AI resonance
 

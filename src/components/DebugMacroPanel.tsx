@@ -116,7 +116,7 @@ export const DebugMacroPanel: React.FC<DebugMacroPanelProps> = ({ indicators, we
                     </td>
                     <td className="py-1.5">
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700">
-                        {ind.polarity === 'POSITIVE_RISK_ON' ? 'Pro-Risco (+)' : 'Pro-Aversão (-)'}
+                        {ind.polarity === 'DIRECT' || (ind.polarity as string) === 'POSITIVE_RISK_ON' ? 'Pro-Risco (+)' : 'Pro-Aversão (-)'}
                       </span>
                     </td>
                     <td className="py-1.5 font-mono text-amber-300">

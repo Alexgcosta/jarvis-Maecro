@@ -111,10 +111,10 @@ export const DiarioTradeView: React.FC = () => {
           <span className="font-tech text-xs text-slate-400">Resultado Consolidado:</span>
           <span
             className={`font-orbitron font-extrabold text-lg sm:text-xl ${
-              totalBrl >= 0 ? 'text-emerald-400' : 'text-rose-400'
+              (totalBrl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
             }`}
           >
-            {totalBrl >= 0 ? `+R$ ${totalBrl.toFixed(2)}` : `R$ ${totalBrl.toFixed(2)}`}
+            {(totalBrl || 0) >= 0 ? `+R$ ${(totalBrl || 0).toFixed(2)}` : `R$ ${(totalBrl || 0).toFixed(2)}`}
           </span>
         </div>
       </div>
@@ -222,10 +222,10 @@ export const DiarioTradeView: React.FC = () => {
                   <td className="py-2.5 font-mono text-cyan-300">{t.confluenceAtEntry}%</td>
                   <td
                     className={`py-2.5 font-mono font-bold ${
-                      t.pnlBrl >= 0 ? 'text-emerald-400' : 'text-rose-400'
+                      (t.pnlBrl || 0) >= 0 ? 'text-emerald-400' : 'text-rose-400'
                     }`}
                   >
-                    {t.pnlBrl >= 0 ? `+R$ ${t.pnlBrl.toFixed(2)}` : `R$ ${t.pnlBrl.toFixed(2)}`}
+                    {(t.pnlBrl || 0) >= 0 ? `+R$ ${(t.pnlBrl || 0).toFixed(2)}` : `R$ ${(t.pnlBrl || 0).toFixed(2)}`}
                   </td>
                   <td className="py-2.5">
                     <span className="text-[10px] px-2 py-0.5 rounded bg-slate-900 border border-slate-700">

@@ -4,6 +4,11 @@ import { calculateWinBias, calculateWdoBias, getTrafficLight } from '../biasCalc
 import { calculateBullishStrength, calculateBearishStrength } from '../confluenceCalculations';
 import { calculateMarketScenario, calculateOptimisticPessimisticProbabilities } from '../scenarioEngine';
 import { detectDivergences } from '../divergenceDetection';
+import {
+  calculateStandardDeviation,
+  calculatePriceReturns,
+  evaluatePriceVolatility,
+} from '../volatilitySpikeDetector';
 import { INITIAL_MACRO_INDICATORS, DEFAULT_WEIGHTS } from '../../data/indicatorsRegistry';
 
 /**
@@ -123,6 +128,22 @@ export function runMacroCalculationsTestSuite(): { passed: boolean; logs: string
     formattedTime: '10:45',
   });
   logTest('Divergence detected when WIN recua (-0.40%) but Macro is positive (72)', divRes.divergences.length > 0);
+
+  // 6. Test Volatility Spike Detector (Standard Deviation of Price Changes > Configurable Threshold)
+  const sampleReturns = [0.1, -0.1, 0.15, -0.2, 0.05];
+  const stdDev = calculateStandardDeviation(sampleReturns);
+  logTest('calculateStandardDeviation computes positive variance for variable returns', stdDev > 0);
+
+  // Volatility normal: steady prices
+  const calmPrices = [5.400, 5.401, 5.402, 5.401, 5.402, 5.403, 5.402];
+  const calmVol = evaluatePriceVolatility(calmPrices, 0.30, 15);
+  logTest('evaluatePriceVolatility evaluates calm series below threshold (isExtremeVolatility = false)', !calmVol.isExtremeVolatility);
+
+  // Volatility spike: high fluctuations exceeding 0.30% threshold
+  const volatilePrices = [5.400, 5.440, 5.370, 5.450, 5.360, 5.460, 5.350];
+  const volatileVol = evaluatePriceVolatility(volatilePrices, 0.30, 15);
+  logTest('evaluatePriceVolatility detects spike when stdDev exceeds threshold (isExtremeVolatility = true)', volatileVol.isExtremeVolatility);
+  logTest('evaluatePriceVolatility calculates correct spike ratio > 1.0', volatileVol.spikeRatio > 1.0);
 
   return { passed, logs };
 }

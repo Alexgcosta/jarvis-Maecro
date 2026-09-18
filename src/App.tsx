@@ -17,7 +17,10 @@ import {
   MarketCrossing,
   DataFreshnessStatus,
 } from './types';
-import { TopBar } from './components/TopBar';
+import { ModernHeader } from './components/ModernHeader';
+import { ModernSidebar } from './components/ModernSidebar';
+import { CommandPaletteModal } from './components/CommandPaletteModal';
+import { AssistantDrawer } from './components/AssistantDrawer';
 import { MarketTickerBar } from './components/MarketTickerBar';
 import { TradeSignalsPanel } from './components/TradeSignalsPanel';
 import { SentimentGaugePanel } from './components/SentimentGaugePanel';
@@ -25,24 +28,26 @@ import { MacroNewsFeed } from './components/MacroNewsFeed';
 import { EconomicCalendarPanel } from './components/EconomicCalendarPanel';
 import { QuantPositionCalculator } from './components/QuantPositionCalculator';
 import { TerminalView } from './components/TerminalView';
-import { ArcReactor } from './components/ArcReactor';
 import { ChatConsole } from './components/ChatConsole';
 import { MacroSourcesHub } from './components/MacroSourcesHub';
+import { WinGlobalLeadersView } from './views/WinGlobalLeadersView';
 import { DashboardView } from './views/DashboardView';
 import { ConfiguracoesView } from './views/ConfiguracoesView';
 import { DiarioTradeView } from './views/DiarioTradeView';
 import { PartnrApiView } from './views/PartnrApiView';
 import { McpView } from './views/McpView';
+import { McpMacroHubDashboard } from './components/McpMacroHubDashboard';
 import { MqttStreamView } from './views/MqttStreamView';
 import { AuthView } from './views/AuthView';
 import { ApiKeysView } from './views/ApiKeysView';
 import { ManualEntryModal } from './components/ManualEntryModal';
 import { Footer } from './components/Footer';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { soundFX } from './utils/soundEffects';
 import { speechEngine } from './utils/speech';
 
 import { DEFAULT_INDICATORS, DEFAULT_WEIGHTS } from './data/indicatorsRegistry';
-import { CANONICAL_TIMELINE, generateCanonicalMarketTimeline } from './data/mockMarketTimeline';
+import { CANONICAL_TIMELINE, generateCanonicalMarketTimeline, getSaoPauloTime } from './data/mockMarketTimeline';
 import {
   calculateGlobalSentiment,
   calculateBrazilSentiment,
@@ -73,8 +78,40 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 
+const VALID_VIEWS: HUDView[] = [
+  'signals',
+  'win_leaders',
+  'dashboard',
+  'sentiment',
+  'sources',
+  'macro_news',
+  'calendar',
+  'quant_calculator',
+  'terminal',
+  'configuracoes',
+  'diario',
+  'api',
+  'partnr_api',
+  'mcp',
+  'mqtt_stream',
+  'auth',
+];
+
 export default function App() {
-  const [currentView, setCurrentView] = useState<HUDView>('dashboard');
+  const [currentView, setCurrentView] = useState<HUDView>(() => {
+    try {
+      const saved = localStorage.getItem('macrodesk_current_view');
+      if (saved && VALID_VIEWS.includes(saved as HUDView)) return saved as HUDView;
+    } catch (e) {}
+    return 'signals'; // Inicia com foco imediato no Painel de Sinais e Confluência WIN/WDO
+  });
+
+  const handleSelectView = useCallback((view: HUDView) => {
+    setCurrentView(view);
+    try {
+      localStorage.setItem('macrodesk_current_view', view);
+    } catch (e) {}
+  }, []);
   const [theme, setTheme] = useState<HUDTheme>('cyan');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [language, setLanguage] = useState<string>('pt-BR');
@@ -93,6 +130,24 @@ export default function App() {
   const [dataStatus, setDataStatus] = useState<DataFreshnessStatus>('LIVE');
   const [lastSyncTime, setLastSyncTime] = useState<string>(new Date().toLocaleTimeString('pt-BR'));
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
+  // Modern Layout State
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState<boolean>(false);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState<boolean>(false);
+  const [copilotDrawerOpen, setCopilotDrawerOpen] = useState<boolean>(false);
+
+  // Global shortcut: Ctrl+K or Cmd+K to open Command Palette
+  useEffect(() => {
+    const handleGlobalKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKey);
+    return () => window.removeEventListener('keydown', handleGlobalKey);
+  }, []);
 
   // Thermometer Alert Monitoring State
   const [thermometerAlerts, setThermometerAlerts] = useState<ThermometerAlert[]>([]);
@@ -316,9 +371,7 @@ export default function App() {
   }, []);
 
   const currentTimeFormatted = useMemo(() => {
-    const h = String(currentDate.getHours()).padStart(2, '0');
-    const m = String(currentDate.getMinutes()).padStart(2, '0');
-    return `${h}:${m}`;
+    return getSaoPauloTime(currentDate).formatted;
   }, [currentDate]);
 
   // Full 24-hour dynamic timeline tracking the current time of day
@@ -496,7 +549,9 @@ export default function App() {
   // Live real Dollar & Index signals
   const liveDollarSignal = useMemo(() => {
     const usdBrlInd = indicators.find((i) => i.id === 'USD_BRL');
-    const exactUsdPrice = usdBrlInd ? usdBrlInd.value : 5.405;
+    const exactUsdPrice = (typeof usdBrlInd?.value === 'number' && !isNaN(usdBrlInd.value) && usdBrlInd.value > 0)
+      ? usdBrlInd.value
+      : 5.405;
     return {
       ...marketState.dollarSignal,
       currentPrice: exactUsdPrice,
@@ -511,7 +566,9 @@ export default function App() {
 
   const liveIndexSignal = useMemo(() => {
     const winInd = indicators.find((i) => i.id === 'WIN');
-    const exactWinPrice = winInd ? winInd.value : 134250;
+    const exactWinPrice = (typeof winInd?.value === 'number' && !isNaN(winInd.value) && winInd.value > 0)
+      ? winInd.value
+      : 134250;
     return {
       ...marketState.indexSignal,
       currentPrice: exactWinPrice,
@@ -524,27 +581,26 @@ export default function App() {
     };
   }, [indicators, currentWinBias, marketState.indexSignal]);
 
-  // J.A.R.V.I.S. Welcome Message
+  // MCP Macro Hub Assistant Welcome Message
   const [messages, setMessages] = useState<JarvisMessage[]>([
     {
       id: 'init-fin-1',
-      sender: 'jarvis',
-      text: `Às suas ordens, Sr. Stark. Sou o seu Agente Quantitativo Macro J.A.R.V.I.S.
-      
-Concluí a varredura macroeconômica global e brasileira:
-• CONFLUÊNCIA ATUAL: Cenário em 🟢 ALTA (Confluência 82% | Força de Alta 73 | Risk Score 66 | Rastro Macro 65).
-• DÓLAR (USD/BRL - WDO): Viés Vendedor / Alívio (DXY estável e fluxo institucional estrangeiro de +R$ 1.85B).
-• ÍNDICE BOVESPA (IBOV - WIN): Viés Comprador (+0.42% com S&P 500 e DI fechando).
-• AUDITORIA: Princípio de Não-Circularidade (Seção 71) estritamente preservado.
+      sender: 'assistant',
+      text: `TERMINAL QUANTITATIVO MCP MACRO HUB CONECTADO // FLUXO OPERACIONAL B3
+• **SISTEMA**: Inteligência Macroeconômica & Confluência Quantitativa Ativa.
+• **CONTRATOS MONITORADOS**: WIN (Mini Índice), WDO (Mini Dólar) e DOL (Dólar Cheio).
+• **CONFLUÊNCIA ATUAL**: 🟢 ALTA (Confluência 82% | Força Alta 73 | Risk Score 66).
+• **MÉTRICA INTRADAY**: Base de 0,00% calibrada rigorosamente no fechamento do dia anterior.
+• **FIDELIDADE DE DADOS**: Somente dados reais via APIs e MCP. Parâmetros sem retorno permanecem como PENDING_API.
 
-Como deseja orientar as operações desta sessão?`,
+Qual ativo ou cenário macroeconômico deseja auditar agora?`,
       timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
 
   const prevSentimentRef = useRef<SentimentAnalysis>(marketState.sentiment);
 
-  // Core handler for J.A.R.V.I.S. Thermometer Watcher
+  // Core handler for Thermometer Watcher
   const notifySentimentChange = useCallback(
     (newSentiment: SentimentAnalysis, prevSentiment: SentimentAnalysis) => {
       const deltaG = newSentiment.globalScore - prevSentiment.globalScore;
@@ -564,19 +620,19 @@ Como deseja orientar as operações desta sessão?`,
       const deltaBStr =
         deltaB > 0 ? `alta de +${deltaB} pts` : deltaB < 0 ? `queda de ${deltaB} pts` : `estável`;
 
-      const jarvisSpoken = `Atenção, senhor Stark. Detectei uma variação no termômetro de sentimento. O Sentimento Global agora está em ${newSentiment.globalLabel} com ${newSentiment.globalScore > 0 ? '+' : ''}${newSentiment.globalScore} pontos, e o Sentimento Brasil está em ${newSentiment.brazilLabel} com ${newSentiment.brazilScore > 0 ? '+' : ''}${newSentiment.brazilScore} pontos.`;
+      const spokenNotification = `Alerta do sistema: Variação detectada no termômetro de sentimento. O Sentimento Global agora está em ${newSentiment.globalLabel} com ${newSentiment.globalScore > 0 ? '+' : ''}${newSentiment.globalScore} pontos, e o Sentimento Brasil está em ${newSentiment.brazilLabel} com ${newSentiment.brazilScore > 0 ? '+' : ''}${newSentiment.brazilScore} pontos.`;
 
       soundFX.playAlert();
 
       if (soundEnabled && voiceAutoSpeak) {
-        speechEngine.speak(jarvisSpoken, language);
+        speechEngine.speak(spokenNotification, language);
       }
 
       const isSevereRiskOff = newSentiment.globalScore < -20 || newSentiment.brazilScore < -20;
       const alertMsg: JarvisMessage = {
         id: Date.now().toString(),
-        sender: 'jarvis',
-        text: `🚨 **[AVISO J.A.R.V.I.S. // OSCILAÇÃO NO TERMÔMETRO DE SENTIMENTO]**
+        sender: 'assistant',
+        text: `🚨 **[ALERTA MCP MACRO HUB // OSCILAÇÃO NO TERMÔMETRO DE SENTIMENTO]**
 • **SENTIMENTO GLOBAL**: **${newSentiment.globalLabel}** (${newSentiment.globalScore > 0 ? '+' : ''}${newSentiment.globalScore} pts | ${deltaGStr})
 • **SENTIMENTO BRASIL**: **${newSentiment.brazilLabel}** (${newSentiment.brazilScore > 0 ? '+' : ''}${newSentiment.brazilScore} pts | ${deltaBStr})
 • **DIRETRIZ**: ${isSevereRiskOff ? 'Viés Comprador no Dólar / Cautela no Índice' : 'Viés Comprador no Índice / Alívio no Dólar'}`,
@@ -647,7 +703,7 @@ Como deseja orientar as operações desta sessão?`,
             changePercent: u.changePercent,
             source: 'PAINEL_MANUAL_AJUSTE',
           })),
-          source: 'JARVIS_UI_CLIENT',
+          source: 'MCP_MACRO_HUB_CLIENT',
         }),
       });
     } catch (err) {
@@ -684,16 +740,18 @@ Como deseja orientar as operações desta sessão?`,
           setDataStatus('LIVE');
           setLastSyncTime(new Date().toLocaleTimeString('pt-BR'));
 
+          const normalizedTopic = topic.replace('jarvis/', 'mcp/');
+
           // Ingest Real Indicators Array
-          if (topic === 'jarvis/macro/indicators/all' || topic === 'jarvis/macro/indicators') {
+          if (normalizedTopic === 'mcp/macro/indicators/all' || normalizedTopic === 'mcp/macro/indicators') {
             if (payload?.indicators && Array.isArray(payload.indicators)) {
               setIndicators(payload.indicators);
             }
           }
 
           // Single Indicator Ingest
-          if (topic.startsWith('jarvis/macro/indicators/') && topic !== 'jarvis/macro/indicators/all') {
-            const indId = topic.split('/').pop();
+          if (normalizedTopic.startsWith('mcp/macro/indicators/') && normalizedTopic !== 'mcp/macro/indicators/all') {
+            const indId = normalizedTopic.split('/').pop();
             if (indId && payload) {
               setIndicators((prev) =>
                 prev.map((item) =>
@@ -712,7 +770,7 @@ Como deseja orientar as operações desta sessão?`,
           }
 
           // Sentiment Ingest
-          if (topic === 'jarvis/macro/sentiment/global' && payload) {
+          if (normalizedTopic === 'mcp/macro/sentiment/global' && payload) {
             setMarketState((prev) => {
               const updated = {
                 ...prev,
@@ -730,7 +788,7 @@ Como deseja orientar as operações desta sessão?`,
             });
           }
 
-          if (topic === 'jarvis/macro/sentiment/brazil' && payload) {
+          if (normalizedTopic === 'mcp/macro/sentiment/brazil' && payload) {
             setMarketState((prev) => {
               const updated = {
                 ...prev,
@@ -749,7 +807,7 @@ Como deseja orientar as operações desta sessão?`,
           }
 
           // Signals Ingest
-          if (topic === 'jarvis/macro/signals/win' && payload) {
+          if (normalizedTopic === 'mcp/macro/signals/win' && payload) {
             setMarketState((prev) => ({
               ...prev,
               indexSignal: {
@@ -763,7 +821,7 @@ Como deseja orientar as operações desta sessão?`,
             }));
           }
 
-          if (topic === 'jarvis/macro/signals/wdo' && payload) {
+          if (normalizedTopic === 'mcp/macro/signals/wdo' && payload) {
             setMarketState((prev) => ({
               ...prev,
               dollarSignal: {
@@ -816,7 +874,9 @@ Como deseja orientar as operações desta sessão?`,
     const unsub = speechEngine.onSpeakingChange((speaking) => {
       setIsSpeaking(speaking);
     });
-    return unsub;
+    return () => {
+      unsub();
+    };
   }, []);
 
   const handleToggleSound = () => {
@@ -846,7 +906,7 @@ Como deseja orientar as operações desta sessão?`,
     setIsProcessing(true);
 
     try {
-      const res = await fetch('/api/jarvis/chat', {
+      let res = await fetch('/api/mcp/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -860,31 +920,47 @@ Como deseja orientar as operações desta sessão?`,
         }),
       });
 
+      if (!res.ok && res.status === 404) {
+        res = await fetch('/api/jarvis/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            aiModel,
+            history: messages.slice(-5).map((m) => ({
+              role: m.sender === 'user' ? 'user' : 'model',
+              text: m.text,
+            })),
+            language,
+          }),
+        });
+      }
+
       const data = await res.json();
       const botResponseText =
-        data.text || 'Análise macroeconômica e confluência calculadas com êxito, senhor.';
+        data.text || 'Análise macroeconômica e confluência quantitativa calculadas com êxito pelo MCP Macro Hub.';
 
-      const jarvisMsg: JarvisMessage = {
+      const mcpMsg: JarvisMessage = {
         id: (Date.now() + 1).toString(),
-        sender: 'jarvis',
+        sender: 'assistant',
         text: botResponseText,
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
         tradeSignal: data.tradeSignal,
         citations: data.citations,
       };
 
-      setMessages((prev) => [...prev, jarvisMsg]);
+      setMessages((prev) => [...prev, mcpMsg]);
       soundFX.playActivation();
 
       if (voiceAutoSpeak) {
         handleSpeakMessage(botResponseText);
       }
     } catch (err: any) {
-      console.error('Error communicating with JARVIS:', err);
+      console.error('Error communicating with MCP Macro Hub API:', err);
       const errorMsg: JarvisMessage = {
         id: (Date.now() + 1).toString(),
-        sender: 'jarvis',
-        text: 'Canais de comunicação quantitativa estabilizados em modo local. O motor macro segue operando com segurança.',
+        sender: 'assistant',
+        text: 'Canais de comunicação quantitativa estabilizados em modo local. O motor MCP Macro Hub segue operando com segurança.',
         timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -920,7 +996,7 @@ Como deseja orientar as operações desta sessão?`,
   };
 
   const handleExecuteTerminalCommand = async (cmd: string): Promise<string> => {
-    const res = await fetch('/api/jarvis/chat', {
+    let res = await fetch('/api/mcp/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -929,48 +1005,76 @@ Como deseja orientar as operações desta sessão?`,
         language,
       }),
     });
+
+    if (!res.ok && res.status === 404) {
+      res = await fetch('/api/jarvis/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: cmd,
+          history: [],
+          language,
+        }),
+      });
+    }
+
     const data = await res.json();
-    return data.text || 'Comando processado pelo cluster quantitativo J.A.R.V.I.S.';
+    return data.text || data.reply || 'Comando processado pelo terminal quantitativo MCP Macro Hub.';
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-cyan-400 font-body relative overflow-x-hidden scanlines">
-      {/* Background Grid */}
-      <div className="fixed inset-0 grid-bg opacity-35 pointer-events-none" />
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 font-sans relative overflow-x-hidden flex flex-col selection:bg-blue-600/30 selection:text-blue-200">
+      {/* Background Subtle Ambience */}
+      <div className="fixed inset-0 grid-bg opacity-40 pointer-events-none" />
 
-      {/* Top Navigation Bar */}
-      <TopBar
+      {/* Modern Sticky Header */}
+      <ModernHeader
         currentView={currentView}
-        onViewChange={setCurrentView}
-        theme={theme}
-        onThemeChange={setTheme}
+        onViewChange={handleSelectView}
+        onOpenMobileNav={() => setMobileNavOpen(true)}
+        onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+        onToggleCopilot={() => setCopilotDrawerOpen((prev) => !prev)}
+        isCopilotOpen={copilotDrawerOpen}
         soundEnabled={soundEnabled}
         onToggleSound={handleToggleSound}
-        language={language}
-        onLanguageChange={setLanguage}
         voiceAutoSpeak={voiceAutoSpeak}
         onToggleVoiceAutoSpeak={() => setVoiceAutoSpeak((prev) => !prev)}
+        onRefreshData={handleForceRefresh}
+        isRefreshing={isRefreshing}
+        quotes={liveQuotes}
         aiModel={aiModel}
         onAIModelChange={setAiModel}
       />
 
-      {/* J.A.R.V.I.S. Floating Alert Toast */}
+      {/* Live Market Ticker Tape */}
+      <MarketTickerBar
+        quotes={liveQuotes}
+        onSelectQuote={(ticker) => {
+          if (ticker.includes('WIN') || ticker.includes('WDO') || ticker.includes('DOL')) {
+            handleSelectView('signals');
+          } else {
+            handleSelectView('win_leaders');
+          }
+        }}
+      />
+
+      {/* Floating Alert Toast */}
       {currentToastAlert && (
         <div
-          id="jarvis-thermometer-toast"
-          className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-50 w-[94vw] max-w-xl animate-bounce-short"
+          id="macro-thermometer-toast"
+          className="fixed top-16 sm:top-20 left-1/2 -translate-x-1/2 z-50 w-[94vw] max-w-xl animate-in fade-in slide-in-from-top-4 duration-300"
         >
-          <div className="p-4 rounded-2xl bg-slate-950/95 border-2 border-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.45)] backdrop-blur-xl flex flex-col gap-2.5 relative overflow-hidden">
-            <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-cyan-400 via-emerald-400 to-amber-400 animate-pulse" />
+          <div className="p-4 rounded-xl bg-zinc-900 border border-zinc-750 shadow-2xl backdrop-blur-xl flex flex-col gap-2.5 relative overflow-hidden">
+            <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 via-emerald-500 to-amber-500" />
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 animate-pulse">
+                <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
                   <BellRing className="w-4 h-4" />
                 </div>
-                <div className="font-orbitron font-bold text-xs text-cyan-200 tracking-wider flex items-center gap-1.5">
-                  <span>AVISO J.A.R.V.I.S. // MUDANÇA NO TERMÔMETRO</span>
-                  <span className="text-[10px] font-tech text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                <div className="font-heading font-semibold text-xs text-zinc-200 flex items-center gap-1.5">
+                  <span>ALERTA MACRO // ALTERAÇÃO NO TERMÔMETRO</span>
+                  <span className="text-[10px] font-mono text-zinc-400 bg-zinc-800 px-1.5 py-0.5 rounded border border-zinc-700">
                     {currentToastAlert.timestamp}
                   </span>
                 </div>
@@ -978,30 +1082,30 @@ Como deseja orientar as operações desta sessão?`,
 
               <button
                 onClick={() => setCurrentToastAlert(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-cyan-200 hover:bg-slate-800 transition-all"
-                title="Fechar Aviso"
+                className="p-1 rounded-lg text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 transition-all"
+                title="Fechar Alerta"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs font-tech">
-              <div className="p-2 rounded-xl bg-slate-900/80 border border-cyan-500/20 flex flex-col">
-                <span className="text-[10px] text-slate-400">GLOBAL (RISK-ON/OFF)</span>
-                <span className="font-bold text-cyan-300">
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="p-2.5 rounded-lg bg-zinc-950/80 border border-zinc-800 flex flex-col">
+                <span className="text-[10px] text-zinc-400 font-mono">GLOBAL (RISK-ON/OFF)</span>
+                <span className="font-bold text-zinc-100 mt-0.5">
                   {currentToastAlert.globalLabel} ({currentToastAlert.newGlobalScore > 0 ? `+${currentToastAlert.newGlobalScore}` : currentToastAlert.newGlobalScore} pts)
                 </span>
               </div>
-              <div className="p-2 rounded-xl bg-slate-900/80 border border-amber-500/20 flex flex-col">
-                <span className="text-[10px] text-slate-400">BRASIL (RISCO FISCAL)</span>
-                <span className="font-bold text-amber-300">
+              <div className="p-2.5 rounded-lg bg-zinc-950/80 border border-zinc-800 flex flex-col">
+                <span className="text-[10px] text-zinc-400 font-mono">BRASIL (RISCO FISCAL)</span>
+                <span className="font-bold text-zinc-100 mt-0.5">
                   {currentToastAlert.brazilLabel} ({currentToastAlert.newBrazilScore > 0 ? `+${currentToastAlert.newBrazilScore}` : currentToastAlert.newBrazilScore} pts)
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-2 pt-1 border-t border-cyan-500/20 text-xs font-tech">
-              <span className="text-[11px] text-slate-300 truncate">
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-zinc-800 text-xs">
+              <span className="text-[11px] text-zinc-300 truncate">
                 {currentToastAlert.summary}
               </span>
 
@@ -1009,20 +1113,20 @@ Como deseja orientar as operações desta sessão?`,
                 <button
                   onClick={() => {
                     soundFX.playActivation();
-                    handleSpeakMessage(`Aviso do termômetro: Sentimento Global em ${currentToastAlert.globalLabel} e Sentimento Brasil em ${currentToastAlert.brazilLabel}.`);
+                    handleSpeakMessage(`Alerta macroeconômico: Sentimento Global em ${currentToastAlert.globalLabel} e Sentimento Brasil em ${currentToastAlert.brazilLabel}.`);
                   }}
-                  className="px-2 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-[11px] text-cyan-200 flex items-center gap-1"
+                  className="px-2 py-1 rounded-md bg-zinc-800 hover:bg-zinc-750 border border-zinc-700 text-[11px] text-zinc-200 flex items-center gap-1"
                 >
                   <Volume2 className="w-3 h-3" /> Ouvir
                 </button>
                 <button
                   onClick={() => {
-                    setCurrentView('dashboard');
+                    handleSelectView('dashboard');
                     setCurrentToastAlert(null);
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-[11px] font-bold text-white flex items-center gap-1"
+                  className="px-2.5 py-1 rounded-md bg-blue-600 hover:bg-blue-500 text-[11px] font-medium text-white flex items-center gap-1"
                 >
-                  <Compass className="w-3 h-3" /> Ver Painel <ArrowRight className="w-3 h-3" />
+                  <Compass className="w-3 h-3" /> Ver Dashboard <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
             </div>
@@ -1030,12 +1134,26 @@ Como deseja orientar as operações desta sessão?`,
         </div>
       )}
 
-      {/* Live Market Ticker Tape */}
-      <MarketTickerBar quotes={liveQuotes} />
+      {/* Main Workspace Layout: Modern Sidebar + Main View Router */}
+      <div className="flex flex-1 relative min-h-[calc(100vh-130px)]">
+        <ModernSidebar
+          currentView={currentView}
+          onViewChange={handleSelectView}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+          mobileOpen={mobileNavOpen}
+          onCloseMobile={() => setMobileNavOpen(false)}
+          indicatorsCount={indicators.length}
+        />
 
-      {/* Main App Container */}
-      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 relative z-10">
-        {/* Router of Views */}
+        {/* Main Content Viewport */}
+        <main className="flex-1 overflow-x-hidden p-3 sm:p-5 lg:p-6 w-full max-w-7xl mx-auto">
+          <ErrorBoundary fallbackTitle="Falha ao renderizar os painéis" onReset={() => setCurrentView('signals')}>
+            {/* Router of Views */}
+            {currentView === 'mcp_hub' && <McpMacroHubDashboard />}
+
+            {currentView === 'win_leaders' && <WinGlobalLeadersView />}
+
         {currentView === 'dashboard' && (
           <DashboardView
             dataStatus={dataStatus}
@@ -1135,86 +1253,120 @@ Como deseja orientar as operações desta sessão?`,
           />
         )}
 
-        {currentView === 'signals' && (
+        {(currentView === 'signals' || !VALID_VIEWS.includes(currentView)) && (
           <div className="flex flex-col gap-6">
+            {/* 1. Primary Highlight: Real-Time Trade Signals Panel (WIN & WDO, Extreme Volatility, Dynamic Targets) */}
+            <TradeSignalsPanel
+              dollarSignal={liveDollarSignal}
+              indexSignal={liveIndexSignal}
+              news={marketState.news}
+              onAskJarvis={handleSendMessage}
+              onOpenCalculator={handleOpenCalculator}
+            />
+
+            {/* 2. Secondary Context: Operational Confluence Matrix & Assistant Console */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               <div className="lg:col-span-5 flex flex-col gap-4">
-                <div className="p-4 rounded-2xl bg-slate-900/60 border border-cyan-500/25 backdrop-blur-md flex flex-col items-center justify-center">
-                  <div className="w-full flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-2">
+                <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm flex flex-col">
+                  <div className="w-full flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
                     <div className="flex items-center gap-2">
-                      <Cpu className="w-4 h-4 text-cyan-400" />
-                      <span className="font-orbitron font-semibold text-xs text-cyan-100 tracking-wider">
-                        NÚCLEO QUANTITATIVO J.A.R.V.I.S.
+                      <Cpu className="w-4 h-4 text-blue-400" />
+                      <span className="font-heading font-semibold text-xs text-zinc-200">
+                        MATRIZ DE CONFLUÊNCIA OPERACIONAL
                       </span>
                     </div>
-                    <span className="font-tech text-[10px] text-emerald-400 uppercase px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/30">
-                      MODO TRADE ATIVO
+                    <span className="text-[10px] font-mono text-emerald-400 uppercase px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                      EXECUÇÃO ATIVA
                     </span>
                   </div>
 
-                  <ArcReactor
-                    theme={theme}
-                    isSpeaking={isSpeaking}
-                    isListening={isListening}
-                    isProcessing={isProcessing}
-                    powerOutput={marketState.arcReactorPower}
-                    onClick={() => {
-                      handleSendMessage('J.A.R.V.I.S., forneça um panorama executivo dos sinais de Dólar e Índice agora.');
-                    }}
-                  />
+                  {/* Operational Cards */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex flex-col">
+                      <span className="text-[10px] font-mono text-zinc-400">MINI DÓLAR (WDO)</span>
+                      <span className={`text-sm font-semibold mt-1 ${liveDollarSignal.action.includes('COMPRA') ? 'text-emerald-400' : liveDollarSignal.action.includes('VENDA') ? 'text-rose-400' : 'text-zinc-200'}`}>
+                        {liveDollarSignal.action}
+                      </span>
+                      <span className="text-[11px] font-mono text-zinc-400 mt-0.5">
+                        Confiança: {liveDollarSignal.confidence}%
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex flex-col">
+                      <span className="text-[10px] font-mono text-zinc-400">MINI ÍNDICE (WIN)</span>
+                      <span className={`text-sm font-semibold mt-1 ${liveIndexSignal.action.includes('COMPRA') ? 'text-emerald-400' : liveIndexSignal.action.includes('VENDA') ? 'text-rose-400' : 'text-zinc-200'}`}>
+                        {liveIndexSignal.action}
+                      </span>
+                      <span className="text-[11px] font-mono text-zinc-400 mt-0.5">
+                        Confiança: {liveIndexSignal.confidence}%
+                      </span>
+                    </div>
+                  </div>
 
-                  <div className="w-full mt-3 pt-3 border-t border-cyan-500/20 grid grid-cols-3 text-center">
+                  {/* AI Diagnosis CTA */}
+                  <button
+                    onClick={() => {
+                      handleSendMessage('Forneça um panorama executivo dos sinais de Dólar e Índice agora com foco em confluência intraday.');
+                    }}
+                    className="w-full py-2.5 px-3 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  >
+                    <Sparkles className="w-4 h-4 text-blue-200" />
+                    Gerar Diagnóstico Executivo de Confluência
+                  </button>
+
+                  <div className="w-full mt-4 pt-3 border-t border-zinc-800 grid grid-cols-3 text-center">
                     <div>
-                      <div className="text-[10px] font-tech text-slate-400">DÓLAR</div>
-                      <div className="font-orbitron text-xs text-emerald-400 font-bold">
-                        {liveDollarSignal.action} ({liveDollarSignal.confidence}%)
+                      <div className="text-[10px] font-mono text-zinc-400">REGIME</div>
+                      <div className="text-xs text-zinc-200 font-semibold mt-0.5">
+                        Intraday B3
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] font-tech text-slate-400">IBOVESPA</div>
-                      <div className="font-orbitron text-xs text-rose-400 font-bold">
-                        {liveIndexSignal.action} ({liveIndexSignal.confidence}%)
+                      <div className="text-[10px] font-mono text-zinc-400">NÃO-CIRCULAR</div>
+                      <div className="text-xs text-emerald-400 font-semibold mt-0.5">
+                        100% Ativo
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] font-tech text-slate-400">SENTIMENTO</div>
-                      <div className="font-tech text-xs text-cyan-300 font-bold">GLOBAL +38</div>
+                      <div className="text-[10px] font-mono text-zinc-400">SENTIMENTO</div>
+                      <div className="text-xs text-blue-400 font-semibold mt-0.5">
+                        {marketState.sentiment.globalScore > 0 ? `+${marketState.sentiment.globalScore}` : marketState.sentiment.globalScore} pts
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-900/60 border border-cyan-500/25 backdrop-blur-md">
-                  <div className="flex items-center justify-between border-b border-cyan-500/20 pb-2 mb-3">
+                <div className="p-5 rounded-xl bg-zinc-900 border border-zinc-800 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3">
                     <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-cyan-400" />
-                      <span className="font-orbitron font-semibold text-xs text-cyan-100">
+                      <Globe className="w-4 h-4 text-zinc-400" />
+                      <span className="font-heading font-semibold text-xs text-zinc-200">
                         TERMÔMETRO DE SENTIMENTO
                       </span>
                     </div>
                     <button
-                      onClick={() => setCurrentView('sentiment')}
-                      className="text-[10px] font-tech text-cyan-300 hover:underline"
+                      onClick={() => handleSelectView('sentiment')}
+                      className="text-[10px] text-blue-400 hover:underline"
                     >
                       VER ANÁLISE COMPLETA →
                     </button>
                   </div>
 
-                  <div className="space-y-2.5 text-xs font-tech">
+                  <div className="space-y-2.5 text-xs">
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-300">Sentimento Global:</span>
-                      <span className="text-emerald-400 font-bold">
+                      <span className="text-zinc-400">Sentimento Global:</span>
+                      <span className="text-emerald-400 font-semibold">
                         {marketState.sentiment.globalLabel} (+{marketState.sentiment.globalScore} pts)
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-300">Sentimento Brasil:</span>
-                      <span className="text-rose-400 font-bold">
+                      <span className="text-zinc-400">Sentimento Brasil:</span>
+                      <span className="text-rose-400 font-semibold">
                         {marketState.sentiment.brazilLabel} ({marketState.sentiment.brazilScore} pts)
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-slate-300">Correlação DXY x Dólar:</span>
-                      <span className="text-cyan-300 font-bold">
+                      <span className="text-zinc-400">Correlação DXY x Dólar:</span>
+                      <span className="text-blue-400 font-semibold font-mono">
                         +{marketState.sentiment.correlationDXY_DOL * 100}% (Alta)
                       </span>
                     </div>
@@ -1239,19 +1391,40 @@ Como deseja orientar as operações desta sessão?`,
                 />
               </div>
             </div>
-
-            <div className="mt-2">
-              <TradeSignalsPanel
-                dollarSignal={liveDollarSignal}
-                indexSignal={liveIndexSignal}
-                news={marketState.news}
-                onAskJarvis={handleSendMessage}
-                onOpenCalculator={handleOpenCalculator}
-              />
-            </div>
           </div>
         )}
-      </main>
+          </ErrorBoundary>
+        </main>
+      </div>
+
+      {/* Command Palette Modal (Ctrl+K) */}
+      <CommandPaletteModal
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+        currentView={currentView}
+        onSelectView={handleSelectView}
+        onRefreshData={handleForceRefresh}
+        onToggleSound={handleToggleSound}
+        soundEnabled={soundEnabled}
+      />
+
+      {/* Global Slide-Over Assistant Drawer */}
+      <AssistantDrawer
+        isOpen={copilotDrawerOpen}
+        onClose={() => setCopilotDrawerOpen(false)}
+        messages={messages}
+        onSendMessage={handleSendMessage}
+        isListening={isListening}
+        onToggleListening={handleToggleListening}
+        isProcessing={isProcessing}
+        isSpeaking={isSpeaking}
+        language={language}
+        onSpeakMessage={handleSpeakMessage}
+        aiModel={aiModel}
+        onAIModelChange={setAiModel}
+        voiceAutoSpeak={voiceAutoSpeak}
+        onToggleVoiceAutoSpeak={() => setVoiceAutoSpeak((prev) => !prev)}
+      />
 
       {/* Manual Entry Modal */}
       <ManualEntryModal

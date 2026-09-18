@@ -9,10 +9,11 @@ import {
   Clock,
   Play,
   RotateCcw,
+  Cpu,
 } from 'lucide-react';
 import { soundFX } from '../utils/soundEffects';
 
-interface JarvisGlobalConsoleProps {
+export interface McpGlobalConsoleProps {
   currentScenario: string;
   globalSentimentScore: number;
   winBiasScore: number;
@@ -22,7 +23,7 @@ interface JarvisGlobalConsoleProps {
   hasDivergence: boolean;
 }
 
-export const JarvisGlobalConsole: React.FC<JarvisGlobalConsoleProps> = ({
+export const McpGlobalConsole: React.FC<McpGlobalConsoleProps> = ({
   currentScenario,
   globalSentimentScore,
   winBiasScore,
@@ -34,14 +35,14 @@ export const JarvisGlobalConsole: React.FC<JarvisGlobalConsoleProps> = ({
   const [isPlayingVoice, setIsPlayingVoice] = useState(false);
   const [voiceVolume, setVoiceVolume] = useState(1);
   const [userQuery, setUserQuery] = useState('');
-  const [chatMessages, setChatMessages] = useState<{ sender: 'user' | 'jarvis'; text: string }[]>([
+  const [chatMessages, setChatMessages] = useState<{ sender: 'user' | 'mcp'; text: string }[]>([
     {
-      sender: 'jarvis',
-      text: `Sistemas online. O sentimento macro global está em +${globalSentimentScore} pontos com viés de ${currentScenario}. Força compradora no WIN e alívio de fluxo no WDO. Como posso auxiliar na análise da sessão?`,
+      sender: 'mcp',
+      text: `Sistemas MCP Macro Hub online. Sentimento macro global em +${globalSentimentScore} pontos com viés de ${currentScenario}. Força no WIN e alívio de fluxo no WDO. Como posso auxiliar na análise da sessão?`,
     },
   ]);
 
-  const defaultVoiceSpeechText = `Relatório Quântico J.A.R.V.I.S. Atenção operador: o sentimento macroeconômico global opera em terreno positivo com score de mais ${globalSentimentScore} pontos. O Rastro do Macro atinge ${macroTrail} e o Risk Score marca ${riskScore} de cem. Confluência aponta cenário de ${currentScenario}. Recomenda-se atenção ao farol do WIN em modo comprador e monitoramento da curva de juros DI.`;
+  const defaultVoiceSpeechText = `Relatório MCP Macro Hub: O sentimento macroeconômico global opera em terreno positivo com score de mais ${globalSentimentScore} pontos. O Rastro do Macro atinge ${macroTrail} e o Risk Score marca ${riskScore} de cem. Confluência aponta cenário de ${currentScenario}. Recomenda-se atenção ao farol do WIN em modo comprador e monitoramento da curva de juros DI.`;
 
   const speakJarvisVoice = (textToSpeak: string) => {
     if (!('speechSynthesis' in window)) {
@@ -105,30 +106,30 @@ export const JarvisGlobalConsole: React.FC<JarvisGlobalConsoleProps> = ({
       } else if (lower.includes('cenario') || lower.includes('confluencia') || lower.includes('risco')) {
         responseText = `Cenário Atual: ${currentScenario}. Risk Score em ${riskScore}/100 e Rastro Macro em ${macroTrail}/100. ${hasDivergence ? 'Atenção: divergência ativa detectada.' : 'Sem divergências severas.'}`;
       } else {
-        responseText = `J.A.R.V.I.S. Informa: Todos os 16 indicadores macro estão sincronizados na grade temporal canônica. Cenário dominante é ${currentScenario} com sentimento global de +${globalSentimentScore} pontos.`;
+        responseText = `Síntese do Sistema: Todos os indicadores macro estão sincronizados na grade temporal canônica. Cenário dominante é ${currentScenario} com sentimento global de +${globalSentimentScore} pontos.`;
       }
 
-      setChatMessages((prev) => [...prev, { sender: 'jarvis', text: responseText }]);
+      setChatMessages((prev) => [...prev, { sender: 'mcp', text: responseText }]);
       soundFX.playSuccess();
     }, 400);
   };
 
   return (
     <section
-      id="panel-jarvis-console"
-      className="p-5 rounded-2xl bg-gradient-to-b from-slate-900/95 to-slate-950/95 border-2 border-cyan-500/40 backdrop-blur-xl shadow-[0_0_30px_rgba(6,182,212,0.2)]"
+      id="panel-executive-console"
+      className="p-5 rounded-2xl bg-zinc-950/90 border border-violet-900/40 shadow-[0_4px_25px_rgba(139,92,246,0.15)]"
     >
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-cyan-500/20">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-cyan-950 border border-cyan-400/50 text-cyan-300 shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-            <Terminal className="w-5 h-5" />
+          <div className="p-2 rounded-lg bg-violet-950/80 border border-violet-500/40 text-violet-400">
+            <Cpu className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-orbitron font-extrabold text-sm sm:text-base text-cyan-100 flex items-center gap-2">
-              J.A.R.V.I.S. GLOBAL CONSOLE // MACRO COPILOT
+            <h3 className="font-mono font-semibold text-sm sm:text-base text-zinc-100 flex items-center gap-2">
+              MCP MACRO HUB // CONSOLE QUANTITATIVO
             </h3>
-            <span className="font-tech text-xs text-slate-400">
-              Síntese Executiva Quantitativa & Assistente de Voz Neural
+            <span className="text-xs text-zinc-400">
+              Síntese Executiva Macroeconômica & Análise Estatística em Tempo Real
             </span>
           </div>
         </div>
@@ -136,10 +137,10 @@ export const JarvisGlobalConsole: React.FC<JarvisGlobalConsoleProps> = ({
         {/* Voice Trigger Button */}
         <button
           onClick={() => speakJarvisVoice(defaultVoiceSpeechText)}
-          className={`px-3.5 py-1.5 rounded-xl font-tech text-xs flex items-center gap-2 border transition-all ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-2 border transition-all ${
             isPlayingVoice
-              ? 'bg-rose-950/80 border-rose-400 text-rose-200 animate-pulse shadow-[0_0_12px_#f43f5e]'
-              : 'bg-cyan-950/80 border-cyan-400/60 text-cyan-200 hover:bg-cyan-900 shadow-[0_0_12px_rgba(6,182,212,0.3)]'
+              ? 'bg-rose-500/15 border-rose-500/40 text-rose-300 animate-pulse'
+              : 'bg-zinc-900 border-zinc-700 text-zinc-200 hover:bg-zinc-800'
           }`}
         >
           {isPlayingVoice ? (
@@ -149,77 +150,77 @@ export const JarvisGlobalConsole: React.FC<JarvisGlobalConsoleProps> = ({
             </>
           ) : (
             <>
-              <Volume2 className="w-4 h-4 text-cyan-400 animate-bounce" />
-              <span>OUVIR SÍNTESE J.A.R.V.I.S.</span>
+              <Volume2 className="w-4 h-4 text-violet-400" />
+              <span>OUVIR SÍNTESE EXECUTIVA</span>
             </>
           )}
         </button>
       </div>
 
-      {/* Synthesis Grid (Sections 52 items) */}
+      {/* Synthesis Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 my-4">
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-          <span className="font-tech text-[10px] text-slate-400 uppercase block">1. Panorama</span>
-          <span className="font-orbitron font-bold text-xs text-slate-200 block mt-1">
+        <div className="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800">
+          <span className="text-[10px] font-mono text-zinc-400 uppercase block">1. Panorama</span>
+          <span className="font-semibold text-xs text-violet-300 block mt-1">
             {currentScenario}
           </span>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-          <span className="font-tech text-[10px] text-slate-400 uppercase block">2. Dólar Global</span>
-          <span className="font-orbitron font-bold text-xs text-slate-200 block mt-1">
+        <div className="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800">
+          <span className="text-[10px] font-mono text-zinc-400 uppercase block">2. Dólar Global</span>
+          <span className="font-semibold text-xs text-zinc-200 block mt-1">
             DXY Neutro
           </span>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-          <span className="font-tech text-[10px] text-slate-400 uppercase block">3. Yield US 10Y</span>
-          <span className="font-orbitron font-bold text-xs text-slate-200 block mt-1">
+        <div className="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800">
+          <span className="text-[10px] font-mono text-zinc-400 uppercase block">3. Yield US 10Y</span>
+          <span className="font-semibold text-xs text-zinc-200 block mt-1">
             4.22% (-2bps)
           </span>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-          <span className="font-tech text-[10px] text-slate-400 uppercase block">4. Brasil / DI</span>
-          <span className="font-orbitron font-bold text-xs text-slate-200 block mt-1">
+        <div className="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800">
+          <span className="text-[10px] font-mono text-zinc-400 uppercase block">4. Brasil / DI</span>
+          <span className="font-semibold text-xs text-zinc-200 block mt-1">
             Estável
           </span>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-          <span className="font-tech text-[10px] text-slate-400 uppercase block">5. Confirmação</span>
-          <span className="font-orbitron font-bold text-xs text-emerald-400 block mt-1">
+        <div className="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800">
+          <span className="text-[10px] font-mono text-zinc-400 uppercase block">5. Confirmação</span>
+          <span className="font-semibold text-xs text-emerald-400 block mt-1">
             VIX & SPX
           </span>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
-          <span className="font-tech text-[10px] text-slate-400 uppercase block">6. Invalidação</span>
-          <span className="font-orbitron font-bold text-xs text-rose-400 block mt-1">
+        <div className="p-3 rounded-xl bg-zinc-900/80 border border-zinc-800">
+          <span className="text-[10px] font-mono text-zinc-400 uppercase block">6. Invalidação</span>
+          <span className="font-semibold text-xs text-rose-400 block mt-1">
             DI F29 {'>'} 12.30%
           </span>
         </div>
       </div>
 
       {/* Interactive Chat Console */}
-      <div className="rounded-xl bg-slate-950/90 border border-slate-800 p-3.5">
-        <div className="h-36 overflow-y-auto space-y-2 pr-2 no-scrollbar">
+      <div className="rounded-xl bg-zinc-900/90 border border-zinc-800 p-3.5">
+        <div className="h-36 overflow-y-auto space-y-2 pr-2">
           {chatMessages.map((msg, idx) => (
             <div
               key={idx}
               className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               <div
-                className={`max-w-[85%] rounded-xl px-3.5 py-2 text-xs font-tech leading-relaxed ${
+                className={`max-w-[85%] rounded-xl px-3.5 py-2 text-xs leading-relaxed ${
                   msg.sender === 'user'
-                    ? 'bg-cyan-950/80 border border-cyan-500/40 text-cyan-200'
-                    : 'bg-slate-900 border border-slate-800 text-slate-200'
+                    ? 'bg-violet-600 text-white'
+                    : 'bg-zinc-950 border border-violet-900/30 text-zinc-200'
                 }`}
               >
-                <div className="flex items-center gap-1.5 mb-0.5 text-[10px] text-slate-400">
-                  <Sparkles className="w-3 h-3 text-cyan-400" />
-                  <span className="uppercase font-bold">
-                    {msg.sender === 'user' ? 'OPERADOR' : 'J.A.R.V.I.S.'}
+                <div className="flex items-center gap-1.5 mb-0.5 text-[10px] text-zinc-400">
+                  <Sparkles className="w-3 h-3 text-violet-400" />
+                  <span className="uppercase font-semibold">
+                    {msg.sender === 'user' ? 'OPERADOR' : 'MCP MACRO HUB'}
                   </span>
                 </div>
                 <span>{msg.text}</span>
@@ -233,12 +234,12 @@ export const JarvisGlobalConsole: React.FC<JarvisGlobalConsoleProps> = ({
             type="text"
             value={userQuery}
             onChange={(e) => setUserQuery(e.target.value)}
-            placeholder="Consulte o J.A.R.V.I.S. sobre confluência, dólar, índice ou curva de juros..."
-            className="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2 text-xs font-tech text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+            placeholder="Consulte sobre confluência, dólar, índice ou curva de juros..."
+            className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3.5 py-2 text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-violet-500"
           />
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-cyan-950 hover:bg-cyan-900 border border-cyan-400/50 text-cyan-300 font-tech text-xs font-bold flex items-center gap-1.5 transition-colors"
+            className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
           >
             <Send className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">CONSULTAR</span>
@@ -248,3 +249,6 @@ export const JarvisGlobalConsole: React.FC<JarvisGlobalConsoleProps> = ({
     </section>
   );
 };
+
+export const JarvisGlobalConsole = McpGlobalConsole;
+export type JarvisGlobalConsoleProps = McpGlobalConsoleProps;

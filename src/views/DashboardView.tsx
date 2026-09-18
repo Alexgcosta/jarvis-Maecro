@@ -1,6 +1,7 @@
 import React from 'react';
 import { Header } from '../components/Header';
 import { MainCards } from '../components/MainCards';
+import { McpQuickSummary } from '../components/McpQuickSummary';
 import { DataQualityBanner } from '../components/DataQualityBanner';
 import { TrafficLightsSection } from '../components/TrafficLightsSection';
 import { IntradayChart } from '../components/IntradayChart';
@@ -11,12 +12,12 @@ import { GlobalMarketsGrid } from '../components/GlobalMarketsGrid';
 import { GlobalDriversPanel } from '../components/GlobalDriversPanel';
 import { GlobalTrafficLight } from '../components/GlobalTrafficLight';
 import { WhatChangedPanel } from '../components/WhatChangedPanel';
-import { JarvisGlobalConsole } from '../components/JarvisGlobalConsole';
+import { McpMacroConsole } from '../components/McpMacroConsole';
 import { BcbInterestPanel } from '../components/BcbInterestPanel';
 import { DebugMacroPanel } from '../components/DebugMacroPanel';
 import { LagAnalysisPanel } from '../components/LagAnalysisPanel';
 import { GlobalSentimentMatrix } from '../components/GlobalSentimentMatrix';
-import { JarvisQuickSummary } from '../components/JarvisQuickSummary';
+import { McpMacroSummary } from '../components/McpMacroSummary';
 import { FredMacroPanel } from '../components/FredMacroPanel';
 import { EconomicCalendarPanel } from '../components/EconomicCalendarPanel';
 import { BrazilianMarketsPanel } from '../components/BrazilianMarketsPanel';
@@ -83,8 +84,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      {/* 1. Jarvis Quick Summary Banner */}
-      <JarvisQuickSummary
+      {/* 1. MCP Quick Summary Banner */}
+      <McpQuickSummary
         currentScenario={currentConfluence.scenario}
         winBiasScore={currentWinBias.score}
         wdoBiasScore={currentWdoBias.score}
@@ -187,8 +188,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         currentWdoBias={currentWdoBias}
       />
 
-      {/* 13. J.A.R.V.I.S. Global Console with Speech Synthesis & Co-Pilot */}
-      <JarvisGlobalConsole
+      {/* 13. MCP Macro Hub Console with Speech Synthesis & Co-Pilot */}
+      <McpMacroConsole
         currentScenario={currentConfluence.scenario}
         globalSentimentScore={currentSentiment.score}
         winBiasScore={currentWinBias.score}

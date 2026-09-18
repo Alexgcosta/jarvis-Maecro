@@ -69,14 +69,14 @@ export const TerminalView: React.FC<TerminalViewProps> = ({
     }
 
     if (lower === 'help') {
-      const helpText = `COMANDOS DO TERMINAL QUANT J.A.R.V.I.S.:
+      const helpText = `COMANDOS DO TERMINAL QUANTITATIVO MACRODESK:
   • dollar / dol     - Diagnóstico completo, níveis técnicos e viés do Dólar (USD/BRL)
   • index / ibov     - Diagnóstico completo, níveis técnicos e viés do Índice Bovespa (IBOV)
   • sentiment        - Termômetro e drivers do Sentimento Global vs Brasil
   • news             - Resumo das notícias macroeconômicas com vetores de impacto
   • quotes           - Cotações em tempo real de moedas, índices, commodities e juros
   • clear            - Limpa a tela do terminal
-  • <pergunta livre> - Análise avançada processada pela rede neural Gemini 3.7 Flash`;
+  • <pergunta livre> - Análise avançada processada pelos modelos quantitativos integrados`;
       setLogs((prev) => [
         ...prev,
         { id: (Date.now() + 1).toString(), type: 'output', text: helpText, timestamp: now },
@@ -139,7 +139,7 @@ export const TerminalView: React.FC<TerminalViewProps> = ({
       return;
     }
 
-    // Forward to JARVIS AI
+    // Forward to MCP Macro Hub AI Engine
     try {
       const response = await onExecuteCommand(cmd);
       setLogs((prev) => [
@@ -176,13 +176,13 @@ export const TerminalView: React.FC<TerminalViewProps> = ({
   };
 
   return (
-    <div id="terminal-screen" className="flex flex-col h-[560px] rounded-2xl bg-slate-950/90 border border-cyan-500/30 backdrop-blur-md overflow-hidden shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+    <div id="terminal-screen" className="flex flex-col h-[560px] rounded-xl bg-zinc-950 border border-zinc-800 overflow-hidden shadow-sm">
       {/* Terminal Title Bar */}
-      <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-cyan-500/20">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900 border-b border-zinc-800">
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-tech text-xs tracking-wider text-cyan-300 font-semibold">
-            J.A.R.V.I.S. FINANCIAL TERMINAL CLI // MACRO QUANT TRADING ENGINE
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+          <span className="font-mono text-xs tracking-wider text-zinc-300 font-medium">
+            MACRODESK QUANTITATIVE TERMINAL CLI // ENGINE OPERACIONAL
           </span>
         </div>
 
@@ -190,7 +190,7 @@ export const TerminalView: React.FC<TerminalViewProps> = ({
           <button
             id="btn-clear-terminal"
             onClick={() => setLogs([])}
-            className="text-slate-400 hover:text-cyan-300 p-1 transition-colors"
+            className="text-zinc-400 hover:text-zinc-200 p-1 transition-colors"
             title="Limpar Console"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -199,21 +199,21 @@ export const TerminalView: React.FC<TerminalViewProps> = ({
       </div>
 
       {/* Terminal Output Area */}
-      <div className="flex-1 p-4 overflow-y-auto font-tech text-xs flex flex-col gap-2 space-y-1 select-text">
+      <div className="flex-1 p-4 overflow-y-auto font-mono text-xs flex flex-col gap-2 space-y-1 select-text">
         {logs.map((log) => (
           <div
             key={log.id}
             className={`leading-relaxed whitespace-pre-wrap ${
               log.type === 'input'
-                ? 'text-cyan-300 font-semibold'
+                ? 'text-blue-400 font-semibold'
                 : log.type === 'error'
-                ? 'text-red-400'
+                ? 'text-rose-400'
                 : log.type === 'system'
-                ? 'text-amber-300/90'
-                : 'text-slate-300'
+                ? 'text-amber-300'
+                : 'text-zinc-300'
             }`}
           >
-            <span className="text-slate-500 mr-2 text-[10px]">[{log.timestamp}]</span>
+            <span className="text-zinc-500 mr-2 text-[10px]">[{log.timestamp}]</span>
             {log.text}
           </div>
         ))}
@@ -223,22 +223,22 @@ export const TerminalView: React.FC<TerminalViewProps> = ({
       {/* Terminal Input Bar */}
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-2 p-3 bg-slate-900/90 border-t border-cyan-500/20"
+        className="flex items-center gap-2 p-3 bg-zinc-900 border-t border-zinc-800"
       >
-        <span className="font-tech text-sm text-cyan-400 font-bold">$</span>
+        <span className="font-mono text-sm text-blue-400 font-bold">$</span>
         <input
           id="terminal-input"
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Digite um comando (help, dollar, index, sentiment, quotes) ou faça uma pergunta a JARVIS..."
-          className="flex-1 bg-transparent border-none outline-none font-tech text-xs text-cyan-100 placeholder-slate-500"
+          placeholder="Digite um comando (help, dollar, index, sentiment, quotes) ou faça uma consulta analítica..."
+          className="flex-1 bg-transparent border-none outline-none font-mono text-xs text-zinc-100 placeholder-zinc-500"
           autoFocus
         />
         <button
           type="submit"
-          className="p-1.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition-colors"
+          className="p-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors"
         >
           <Send className="w-3.5 h-3.5" />
         </button>

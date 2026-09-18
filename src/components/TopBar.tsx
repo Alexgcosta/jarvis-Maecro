@@ -54,6 +54,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   onAIModelChange,
 }) => {
   const views: { id: HUDView; label: string; icon: React.ReactNode }[] = [
+    { id: 'win_leaders', label: '👑 WIN Global Leaders', icon: <Radio className="w-4 h-4 text-cyan-400 animate-pulse" /> },
     { id: 'dashboard', label: '📊 Master Dashboard', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'signals', label: '🎯 Sinais & HUD', icon: <Sparkles className="w-4 h-4" /> },
     { id: 'sources', label: '🌐 Fontes Web', icon: <Globe className="w-4 h-4" /> },

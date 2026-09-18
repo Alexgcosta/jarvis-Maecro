@@ -56,7 +56,7 @@ export const MqttStreamView: React.FC<MqttStreamViewProps> = ({
 }) => {
   const [packets, setPackets] = useState<MqttPacketItem[]>([]);
   const [isStreaming, setIsStreaming] = useState<boolean>(true);
-  const [selectedFilter, setSelectedFilter] = useState<string>('jarvis/macro/#');
+  const [selectedFilter, setSelectedFilter] = useState<string>('mcp/macro/#');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeCodeTab, setActiveCodeTab] = useState<'nodejs' | 'python' | 'curl' | 'sse' | 'metatrader'>('python');
   const [brokerStats, setBrokerStats] = useState({
@@ -163,7 +163,7 @@ export const MqttStreamView: React.FC<MqttStreamViewProps> = ({
   const [webhooks, setWebhooks] = useState<WebhookItem[]>([]);
   const [newWhName, setNewWhName] = useState<string>('');
   const [newWhUrl, setNewWhUrl] = useState<string>('');
-  const [newWhTopic, setNewWhTopic] = useState<string>('jarvis/macro/#');
+  const [newWhTopic, setNewWhTopic] = useState<string>('mcp/macro/#');
   const [showAddWebhook, setShowAddWebhook] = useState<boolean>(false);
   const [whTestingId, setWhTestingId] = useState<string | null>(null);
 
@@ -178,7 +178,7 @@ export const MqttStreamView: React.FC<MqttStreamViewProps> = ({
   const [autoSimulate, setAutoSimulate] = useState<boolean>(false);
 
   // Custom Publisher state
-  const [pubTopic, setPubTopic] = useState<string>('jarvis/macro/custom-alert');
+  const [pubTopic, setPubTopic] = useState<string>('mcp/macro/custom-alert');
   const [pubQos, setPubQos] = useState<number>(1);
   const [pubRetain, setPubRetain] = useState<boolean>(false);
   const [pubPayload, setPubPayload] = useState<string>(
@@ -406,7 +406,7 @@ export const MqttStreamView: React.FC<MqttStreamViewProps> = ({
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `jarvis_macro_tracker_${Date.now()}.json`;
+        a.download = `macrodesk_tracker_${Date.now()}.json`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -426,7 +426,7 @@ export const MqttStreamView: React.FC<MqttStreamViewProps> = ({
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `jarvis_macro_indicators_${Date.now()}.csv`;
+        a.download = `macrodesk_indicators_${Date.now()}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -441,7 +441,7 @@ export const MqttStreamView: React.FC<MqttStreamViewProps> = ({
     soundFX.playActivation();
     try {
       const payload = {
-        topic: 'jarvis/macro/confluence',
+        topic: 'mcp/macro/confluence',
         payload: {
           scenario: currentConfluence?.scenario || 'ALTA',
           bullishStrength: currentConfluence?.bullishStrength || 70,
@@ -511,16 +511,16 @@ export const MqttStreamView: React.FC<MqttStreamViewProps> = ({
 import mqtt from 'mqtt';
 
 const client = mqtt.connect('mqtt://localhost:1883', {
-  clientId: 'jarvis-quant-bot-01',
+  clientId: 'macrodesk-quant-bot-01',
   clean: true,
 });
 
 client.on('connect', () => {
-  console.log('⚡ Conectado ao Mosca Macro Broker J.A.R.V.I.S.');
+  console.log('⚡ Conectado ao Broker MacroDesk');
   
   // Inscreve-se em todos os tópicos do rastreador macro
   client.subscribe('jarvis/macro/#', { qos: 1 }, (err) => {
-    if (!err) console.log('📡 Inscrito em jarvis/macro/#');
+    if (!err) console.log('📡 Inscrito nos tópicos macro');
   });
 });
 
@@ -555,7 +555,7 @@ def get_macro_snapshot():
 
 # 2. Stream em Tempo Real via MQTT (Mosca Broker)
 def on_connect(client, userdata, flags, rc):
-    print("⚡ Conectado ao Broker Mosca J.A.R.V.I.S. (RC: %d)" % rc)
+    print("⚡ Conectado ao Broker MacroDesk (RC: %d)" % rc)
     client.subscribe("jarvis/macro/#", qos=1)
 
 def on_message(client, userdata, msg):
@@ -564,9 +564,9 @@ def on_message(client, userdata, msg):
     print(f"📡 [MQTT {topic}] -> {payload}")
 
     # Exemplo de lógica de trade quant
-    if topic == "jarvis/macro/signals/win":
+    if topic == "mcp/macro/signals/win" or topic == "jarvis/macro/signals/win":
         print(f"👉 Mini Índice WIN: {payload.get('bias')} | Alvo: {payload.get('target')}")
-    elif topic == "jarvis/macro/signals/wdo":
+    elif topic == "mcp/macro/signals/wdo" or topic == "jarvis/macro/signals/wdo":
         print(f"👉 Mini Dólar WDO: {payload.get('bias')} | Alvo: {payload.get('target')}")
 
 client = mqtt.Client(client_id="python_quant_agent")
@@ -597,7 +597,7 @@ curl -X GET "http://localhost:3000/api/macro/sentiment"
 curl -X POST "http://localhost:3000/api/macro/mqtt/publish" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "topic": "jarvis/macro/signals/win",
+    "topic": "mcp/macro/signals/win",
     "payload": { "action": "BUY", "target": 135000, "confidence": 85 },
     "qos": 1,
     "retain": true
@@ -612,7 +612,7 @@ eventSource.addEventListener('mqtt_packet', (event) => {
   const packet = JSON.parse(event.data);
   console.log('📡 Pacote MQTT em Tempo Real:', packet.topic, packet.payload);
 
-  if (packet.topic === 'jarvis/macro/sentiment/global') {
+  if (packet.topic === 'mcp/macro/sentiment/global' || packet.topic === 'jarvis/macro/sentiment/global') {
     document.getElementById('global-score').innerText = packet.payload.score;
   }
 });
@@ -643,25 +643,25 @@ void OnTick()
       // Analisa o cenário recebido (ex: ALTA, BAIXA, AGUARDAR)
       if(StringFind(response, "\\"scenario\\":\\"ALTA\\"") >= 0)
       {
-         Print("🟢 MACRO J.A.R.V.I.S.: ALTA CONFIRMADA - Permitir Compras WIN!");
+         Print("🟢 MACRODESK: ALTA CONFIRMADA - Permitir Compras WIN!");
       }
       else if(StringFind(response, "\\"scenario\\":\\"BAIXA\\"") >= 0)
       {
-         Print("🔴 MACRO J.A.R.V.I.S.: BAIXA CONFIRMADA - Permitir Vendas WIN / Compra WDO!");
+         Print("🔴 MACRODESK: BAIXA CONFIRMADA - Permitir Vendas WIN / Compra WDO!");
       }
    }
 }`,
   };
 
   const filteredPackets =
-    selectedFilter === 'jarvis/macro/#'
+    selectedFilter === 'mcp/macro/#' || selectedFilter === 'jarvis/macro/#'
       ? packets
       : packets.filter((p) => {
           if (selectedFilter.endsWith('/#')) {
             const prefix = selectedFilter.replace('/#', '');
-            return p.topic.startsWith(prefix);
+            return p.topic.startsWith(prefix) || p.topic.replace('jarvis/', 'mcp/').startsWith(prefix);
           }
-          return p.topic === selectedFilter;
+          return p.topic === selectedFilter || p.topic.replace('jarvis/', 'mcp/') === selectedFilter;
         });
 
   return (
@@ -760,7 +760,7 @@ void OnTick()
           <span className="font-orbitron font-extrabold text-xl text-purple-300 mt-1">
             {brokerStats.uniqueTopicsCount} <span className="text-xs font-normal text-slate-400">canais</span>
           </span>
-          <span className="font-mono text-[10px] text-purple-400 mt-1">Root: jarvis/macro/#</span>
+          <span className="font-mono text-[10px] text-purple-400 mt-1">Root: mcp/macro/#</span>
         </div>
 
         <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between">
@@ -1039,11 +1039,11 @@ void OnTick()
                 <Filter className="w-3 h-3" /> Filtro:
               </span>
               {[
-                { label: 'Todos (/#)', value: 'jarvis/macro/#' },
-                { label: 'Confluência', value: 'jarvis/macro/confluence' },
-                { label: 'Sentimento', value: 'jarvis/macro/sentiment/#' },
-                { label: 'Sinais WIN/WDO', value: 'jarvis/macro/signals/#' },
-                { label: 'Heartbeat', value: 'jarvis/macro/heartbeat' },
+                { label: 'Todos (/#)', value: 'mcp/macro/#' },
+                { label: 'Confluência', value: 'mcp/macro/confluence' },
+                { label: 'Sentimento', value: 'mcp/macro/sentiment/#' },
+                { label: 'Sinais WIN/WDO', value: 'mcp/macro/signals/#' },
+                { label: 'Heartbeat', value: 'mcp/macro/heartbeat' },
               ].map((f) => (
                 <button
                   key={f.value}
@@ -1148,7 +1148,7 @@ void OnTick()
                   value={pubTopic}
                   onChange={(e) => setPubTopic(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-cyan-200 font-mono text-xs focus:border-purple-400 focus:outline-none"
-                  placeholder="jarvis/macro/..."
+                  placeholder="mcp/macro/..."
                 />
               </div>
 
@@ -1213,12 +1213,12 @@ void OnTick()
 
             <div className="space-y-2 text-xs font-tech">
               {[
-                { topic: 'jarvis/macro/sentiment/global', desc: 'Score Global, classificação e drivers', qos: 1 },
-                { topic: 'jarvis/macro/sentiment/brazil', desc: 'Termômetro Brasil, juros e fiscal', qos: 1 },
-                { topic: 'jarvis/macro/confluence', desc: '4 Pilares quantitativos e veredito', qos: 1 },
-                { topic: 'jarvis/macro/signals/win', desc: 'Sinal Mini Índice (alvo/stop)', qos: 1 },
-                { topic: 'jarvis/macro/signals/wdo', desc: 'Sinal Mini Dólar (alvo/stop)', qos: 1 },
-                { topic: 'jarvis/macro/indicators/all', desc: 'Cesta dos 24 indicadores em tempo real', qos: 0 },
+                { topic: 'mcp/macro/sentiment/global', desc: 'Score Global, classificação e drivers', qos: 1 },
+                { topic: 'mcp/macro/sentiment/brazil', desc: 'Termômetro Brasil, juros e fiscal', qos: 1 },
+                { topic: 'mcp/macro/confluence', desc: '4 Pilares quantitativos e veredito', qos: 1 },
+                { topic: 'mcp/macro/signals/win', desc: 'Sinal Mini Índice (alvo/stop)', qos: 1 },
+                { topic: 'mcp/macro/signals/wdo', desc: 'Sinal Mini Dólar (alvo/stop)', qos: 1 },
+                { topic: 'mcp/macro/indicators/all', desc: 'Cesta dos 24 indicadores em tempo real', qos: 0 },
               ].map((t) => (
                 <div
                   key={t.topic}
@@ -1300,7 +1300,7 @@ void OnTick()
                 <label className="block font-tech text-[11px] text-slate-400 mb-1">Filtro de Tópico MQTT:</label>
                 <input
                   type="text"
-                  placeholder="jarvis/macro/signals/#"
+                  placeholder="mcp/macro/signals/#"
                   value={newWhTopic}
                   onChange={(e) => setNewWhTopic(e.target.value)}
                   className="w-full px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-purple-300 font-mono text-xs focus:border-amber-400 focus:outline-none"

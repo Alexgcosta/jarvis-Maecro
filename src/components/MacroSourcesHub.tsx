@@ -56,11 +56,19 @@ export const MacroSourcesHub: React.FC<MacroSourcesHubProps> = ({
     soundFX.playActivation();
 
     try {
-      const res = await fetch('/api/jarvis/scan-sources', {
+      let res = await fetch('/api/mcp/scan-sources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
       });
+
+      if (!res.ok && res.status === 404) {
+        res = await fetch('/api/jarvis/scan-sources', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+      }
 
       const data = await res.json();
       setScanResult(data.text || 'Varredura das fontes e Método Macro concluída.');
@@ -82,11 +90,19 @@ export const MacroSourcesHub: React.FC<MacroSourcesHubProps> = ({
     soundFX.playBlip(1050);
 
     try {
-      const res = await fetch('/api/jarvis/scan-sources', {
+      let res = await fetch('/api/mcp/scan-sources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sourceFilter: `${source.name} (${source.url})` }),
       });
+
+      if (!res.ok && res.status === 404) {
+        res = await fetch('/api/jarvis/scan-sources', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sourceFilter: `${source.name} (${source.url})` }),
+        });
+      }
 
       const data = await res.json();
       setScanResult(data.text);
@@ -420,13 +436,13 @@ export const MacroSourcesHub: React.FC<MacroSourcesHubProps> = ({
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-cyan-400" />
           <span className="font-tech text-xs text-slate-300">
-            Deseja que J.A.R.V.I.S. sincronize os indicadores proprietários do Método Macro com o Termômetro Global?
+            Deseja sincronizar os indicadores proprietários do Método Macro com o Termômetro Global?
           </span>
         </div>
         <button
           onClick={() =>
             onAskJarvis(
-              'J.A.R.V.I.S., processe os dados do Método Macro (chave 86422ca889dbca478d07f2f6ecfb5c74c40368623b635a9a8dfadb17b8017019) e cruze com a Matriz de Sentimento Global para Dólar e Ibovespa.'
+              'Processe os dados do Método Macro (chave 86422ca889dbca478d07f2f6ecfb5c74c40368623b635a9a8dfadb17b8017019) e cruze com a Matriz de Sentimento Global para Dólar e Ibovespa.'
             )
           }
           className="px-3.5 py-1.5 rounded-lg bg-cyan-500/20 border border-cyan-400 text-cyan-200 text-xs font-tech hover:bg-cyan-500/30 whitespace-nowrap transition-colors"

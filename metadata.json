@@ -1,6 +1,6 @@
 {
-  "name": "J.A.R.V.I.S. Financial Market Agent",
-  "description": "Terminal holográfico quantitativo J.A.R.V.I.S. especializado em análise macroeconômica em tempo real, sentimento global e brasileiro, e sinais quantitativos de compra e venda de Dólar (USD/BRL) e Índice Bovespa (IBOV).",
+  "name": "MacroDesk // Terminal Quantitativo B3",
+  "description": "Terminal profissional quantitativo de inteligência macroeconômica em tempo real para Mini Índice (WIN) e Mini Dólar (WDO).",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

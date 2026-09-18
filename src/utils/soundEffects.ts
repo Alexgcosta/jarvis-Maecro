@@ -43,7 +43,7 @@ class SoundEffectsEngine {
     }
   }
 
-  // Futuristic activation chime (JARVIS startup / query acknowledged)
+  // Institutional activation chime (MacroDesk notification chime)
   public playActivation() {
     if (!this.enabled) return;
     try {
@@ -199,6 +199,11 @@ class SoundEffectsEngine {
     } catch {
       // Ignore
     }
+  }
+
+  // Notification chime
+  public playNotification() {
+    this.playActivation();
   }
 }
 

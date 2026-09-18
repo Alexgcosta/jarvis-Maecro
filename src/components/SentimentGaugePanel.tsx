@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SentimentAnalysis, ThermometerAlert } from '../types';
+import { SpeedometerGauge } from './SpeedometerGauge';
 import {
   Globe,
   Flag,
@@ -145,7 +146,7 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
           <button
             onClick={() => {
               soundFX.playBlip(1000);
-              onAskJarvis('J.A.R.V.I.S., faça um comparativo detalhado entre o sentimento global e o sentimento brasileiro para os ativos hoje.');
+              onAskJarvis('Faça um comparativo detalhado entre o sentimento global e o sentimento brasileiro para os ativos hoje.');
             }}
             className="px-3.5 py-2 rounded-xl bg-cyan-500/20 border border-cyan-500/40 hover:bg-cyan-500/30 text-cyan-200 font-tech text-xs flex items-center justify-center gap-2 transition-all shrink-0"
           >
@@ -165,7 +166,7 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
             </span>
           </div>
           <span className="text-[10px] font-tech text-slate-400 hidden sm:inline">
-            Clique para acionar mudança e ouvir o aviso imediato do J.A.R.V.I.S.
+            Clique para acionar mudança e testar o alerta de voz imediato do sistema.
           </span>
         </div>
 
@@ -335,9 +336,9 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
             <div className="flex justify-end">
               <button
                 onClick={handleApplyCustomTuning}
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-emerald-600 hover:from-cyan-500 hover:to-emerald-500 text-white font-orbitron text-xs font-bold shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all flex items-center gap-2"
+                className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-heading text-xs font-bold shadow-[0_0_15px_rgba(139,92,246,0.3)] transition-all flex items-center gap-2"
               >
-                <Zap className="w-4 h-4" /> APLICAR VARIAÇÃO & ACIONAR J.A.R.V.I.S.
+                <Zap className="w-4 h-4" /> APLICAR VARIAÇÃO & SINCRONIZAR MCP MACRO HUB
               </button>
             </div>
           </div>
@@ -347,16 +348,16 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
       {/* Gauges Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Global Sentiment Card */}
-        <div className="p-5 rounded-2xl bg-slate-900/70 border border-cyan-500/30 backdrop-blur-md flex flex-col">
-          <div className="flex items-center justify-between border-b border-cyan-500/15 pb-3 mb-4">
+        <div className="p-5 rounded-2xl bg-zinc-900/90 border border-violet-900/40 shadow-[0_4px_25px_rgba(0,0,0,0.4)] backdrop-blur-md flex flex-col">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
             <div className="flex items-center gap-2.5">
-              <Globe className="w-5 h-5 text-cyan-400" />
-              <span className="font-orbitron font-bold text-xs text-cyan-100 tracking-wider">
+              <Globe className="w-5 h-5 text-violet-400" />
+              <span className="font-heading font-bold text-xs text-zinc-100 tracking-wider">
                 SENTIMENTO GLOBAL (RISK-ON / RISK-OFF)
               </span>
             </div>
             <span
-              className={`font-tech text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${
+              className={`font-mono text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${
                 sentiment.globalScore > 0
                   ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
                   : 'bg-rose-950/60 border-rose-500/40 text-rose-300'
@@ -366,39 +367,30 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
             </span>
           </div>
 
-          {/* Meter Bar */}
-          <div className="my-3">
-            <div className="flex justify-between font-tech text-[10px] text-slate-400 mb-1.5">
-              <span className="text-rose-400 font-bold">PESSIMISMO / RISK-OFF (-100)</span>
-              <span className="text-amber-400">NEUTRO (0)</span>
-              <span className="text-emerald-400 font-bold">OTIMISMO / RISK-ON (+100)</span>
-            </div>
-            <div className="h-4 w-full bg-slate-950 rounded-full overflow-hidden p-0.5 border border-cyan-500/30 relative">
-              {/* Gradient track */}
-              <div className="absolute inset-0 bg-gradient-to-r from-rose-600/40 via-amber-500/40 to-emerald-500/40 opacity-70" />
-              {/* Indicator Pin */}
-              <div
-                className="absolute top-0 bottom-0 w-2.5 bg-cyan-100 rounded-full shadow-[0_0_12px_#22d3ee] border border-cyan-400 transform -translate-x-1/2 transition-all duration-700"
-                style={{ left: `${getPercentage(sentiment.globalScore)}%` }}
-              />
-            </div>
-            <div className="text-center mt-2 font-orbitron font-bold text-sm">
-              Pontuação Global:{' '}
-              <span className={getScoreColor(sentiment.globalScore)}>
-                {sentiment.globalScore > 0 ? `+${sentiment.globalScore}` : sentiment.globalScore} pts
-              </span>
-            </div>
+          {/* Speedometer Gauge */}
+          <div className="my-2 py-2 flex flex-col items-center justify-center bg-zinc-950/60 rounded-xl border border-zinc-800/80">
+            <SpeedometerGauge
+              id="gauge-global-sentiment"
+              value={sentiment.globalScore}
+              min={-100}
+              max={100}
+              unit="pts"
+              size="md"
+              title="Velocímetro de Sentimento Global"
+              subtitle={sentiment.globalLabel}
+              colorScheme="bidirectional"
+            />
           </div>
 
           {/* Drivers */}
-          <div className="mt-4 pt-3 border-t border-cyan-500/15">
-            <span className="font-tech text-[11px] text-slate-400 uppercase tracking-wider block mb-2 font-semibold">
+          <div className="mt-4 pt-3 border-t border-zinc-800">
+            <span className="font-mono text-[11px] text-zinc-400 uppercase tracking-wider block mb-2 font-semibold">
               FATORES MACRO GLOBAIS DETERMINANTES:
             </span>
-            <ul className="space-y-2 font-body text-xs text-slate-300">
+            <ul className="space-y-2 font-body text-xs text-zinc-300">
               {sentiment.globalDrivers.map((driver, idx) => (
-                <li key={idx} className="flex items-start gap-2 bg-slate-950/60 p-2 rounded-lg border border-cyan-500/15">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 mt-1.5 shrink-0" />
+                <li key={idx} className="flex items-start gap-2 bg-zinc-950/60 p-2 rounded-lg border border-zinc-800/80">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-400 mt-1.5 shrink-0" />
                   <span>{driver}</span>
                 </li>
               ))}
@@ -407,16 +399,16 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
         </div>
 
         {/* Brazil Sentiment Card */}
-        <div className="p-5 rounded-2xl bg-slate-900/70 border border-cyan-500/30 backdrop-blur-md flex flex-col">
-          <div className="flex items-center justify-between border-b border-cyan-500/15 pb-3 mb-4">
+        <div className="p-5 rounded-2xl bg-zinc-900/90 border border-violet-900/40 shadow-[0_4px_25px_rgba(0,0,0,0.4)] backdrop-blur-md flex flex-col">
+          <div className="flex items-center justify-between border-b border-zinc-800 pb-3 mb-4">
             <div className="flex items-center gap-2.5">
               <Flag className="w-5 h-5 text-amber-400" />
-              <span className="font-orbitron font-bold text-xs text-cyan-100 tracking-wider">
+              <span className="font-heading font-bold text-xs text-zinc-100 tracking-wider">
                 SENTIMENTO BRASIL (RISCO FISCAL & LOCAL)
               </span>
             </div>
             <span
-              className={`font-tech text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${
+              className={`font-mono text-xs font-bold px-2.5 py-1 rounded-lg border transition-all ${
                 sentiment.brazilScore > 0
                   ? 'bg-emerald-950/60 border-emerald-500/40 text-emerald-300'
                   : 'bg-rose-950/60 border-rose-500/40 text-rose-300'
@@ -426,38 +418,29 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
             </span>
           </div>
 
-          {/* Meter Bar */}
-          <div className="my-3">
-            <div className="flex justify-between font-tech text-[10px] text-slate-400 mb-1.5">
-              <span className="text-rose-400 font-bold">PESSIMISMO / ESTRESSE FISCAL (-100)</span>
-              <span className="text-amber-400">NEUTRO (0)</span>
-              <span className="text-emerald-400 font-bold">OTIMISMO / FLUXO (+100)</span>
-            </div>
-            <div className="h-4 w-full bg-slate-950 rounded-full overflow-hidden p-0.5 border border-cyan-500/30 relative">
-              {/* Gradient track */}
-              <div className="absolute inset-0 bg-gradient-to-r from-rose-600/40 via-amber-500/40 to-emerald-500/40 opacity-70" />
-              {/* Indicator Pin */}
-              <div
-                className="absolute top-0 bottom-0 w-2.5 bg-cyan-100 rounded-full shadow-[0_0_12px_#22d3ee] border border-cyan-400 transform -translate-x-1/2 transition-all duration-700"
-                style={{ left: `${getPercentage(sentiment.brazilScore)}%` }}
-              />
-            </div>
-            <div className="text-center mt-2 font-orbitron font-bold text-sm">
-              Pontuação Brasil:{' '}
-              <span className={getScoreColor(sentiment.brazilScore)}>
-                {sentiment.brazilScore > 0 ? `+${sentiment.brazilScore}` : sentiment.brazilScore} pts
-              </span>
-            </div>
+          {/* Speedometer Gauge */}
+          <div className="my-2 py-2 flex flex-col items-center justify-center bg-zinc-950/60 rounded-xl border border-zinc-800/80">
+            <SpeedometerGauge
+              id="gauge-brazil-sentiment"
+              value={sentiment.brazilScore}
+              min={-100}
+              max={100}
+              unit="pts"
+              size="md"
+              title="Velocímetro de Sentimento Brasil"
+              subtitle={sentiment.brazilLabel}
+              colorScheme="bidirectional"
+            />
           </div>
 
           {/* Drivers */}
-          <div className="mt-4 pt-3 border-t border-cyan-500/15">
-            <span className="font-tech text-[11px] text-slate-400 uppercase tracking-wider block mb-2 font-semibold">
+          <div className="mt-4 pt-3 border-t border-zinc-800">
+            <span className="font-mono text-[11px] text-zinc-400 uppercase tracking-wider block mb-2 font-semibold">
               FATORES MACRO DOMÉSTICOS DETERMINANTES:
             </span>
-            <ul className="space-y-2 font-body text-xs text-slate-300">
+            <ul className="space-y-2 font-body text-xs text-zinc-300">
               {sentiment.brazilDrivers.map((driver, idx) => (
-                <li key={idx} className="flex items-start gap-2 bg-slate-950/60 p-2 rounded-lg border border-cyan-500/15">
+                <li key={idx} className="flex items-start gap-2 bg-zinc-950/60 p-2 rounded-lg border border-zinc-800/80">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mt-1.5 shrink-0" />
                   <span>{driver}</span>
                 </li>
@@ -467,17 +450,17 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
         </div>
       </div>
 
-      {/* History of Thermometer Alerts Announced by JARVIS */}
+      {/* History of Thermometer Alerts Announced by MCP Macro Hub */}
       {alerts.length > 0 && (
-        <div className="p-5 rounded-2xl bg-slate-900/70 border border-cyan-500/30 backdrop-blur-md">
-          <div className="flex items-center justify-between mb-3 border-b border-cyan-500/20 pb-2">
+        <div className="p-5 rounded-2xl bg-zinc-950/90 border border-violet-900/40 shadow-[0_4px_25px_rgba(139,92,246,0.1)]">
+          <div className="flex items-center justify-between mb-3 border-b border-zinc-800 pb-2">
             <div className="flex items-center gap-2">
-              <History className="w-4 h-4 text-cyan-400" />
-              <h3 className="font-orbitron font-bold text-xs text-cyan-100 tracking-wider">
-                HISTÓRICO DE MUDANÇAS NO TERMÔMETRO AVISADAS POR J.A.R.V.I.S.
+              <History className="w-4 h-4 text-violet-400" />
+              <h3 className="font-mono font-bold text-xs text-zinc-100 tracking-wider">
+                HISTÓRICO DE MUDANÇAS NO TERMÔMETRO — MCP MACRO HUB
               </h3>
             </div>
-            <span className="text-[10px] font-tech text-slate-400">
+            <span className="text-[10px] font-mono text-zinc-400">
               {alerts.length} registro(s) de oscilação nesta sessão
             </span>
           </div>
@@ -486,26 +469,26 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
             {alerts.slice(-5).reverse().map((alert) => (
               <div
                 key={alert.id}
-                className="p-3 rounded-xl bg-slate-950/80 border border-cyan-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                className="p-3 rounded-xl bg-zinc-900/80 border border-violet-900/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
               >
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-tech text-cyan-400 bg-cyan-950 px-1.5 py-0.5 rounded border border-cyan-500/30">
+                    <span className="text-[10px] font-mono text-violet-300 bg-violet-950/80 px-1.5 py-0.5 rounded border border-violet-500/40">
                       {alert.timestamp}
                     </span>
-                    <span className="font-orbitron text-xs font-bold text-cyan-100">
+                    <span className="font-mono text-xs font-bold text-zinc-200">
                       Global: {alert.globalLabel} ({alert.newGlobalScore > 0 ? `+${alert.newGlobalScore}` : alert.newGlobalScore} pts) | Brasil: {alert.brazilLabel} ({alert.newBrazilScore > 0 ? `+${alert.newBrazilScore}` : alert.newBrazilScore} pts)
                     </span>
                   </div>
-                  <p className="text-xs font-body text-slate-300 mt-1">{alert.summary}</p>
+                  <p className="text-xs text-zinc-300 mt-1">{alert.summary}</p>
                 </div>
 
                 <button
                   onClick={() => {
                     soundFX.playBlip(1000);
-                    onAskJarvis(`J.A.R.V.I.S., detalhe as consequências da última mudança no termômetro (${alert.globalLabel} / ${alert.brazilLabel}) para o Dólar e Índice.`);
+                    onAskJarvis(`Detalhe as consequências da última mudança no termômetro (${alert.globalLabel} / ${alert.brazilLabel}) para o Dólar e Índice.`);
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-[10px] font-tech text-cyan-200 shrink-0 self-start sm:self-center"
+                  className="px-2.5 py-1 rounded-lg bg-violet-600/20 hover:bg-violet-600/30 border border-violet-500/40 text-[10px] font-mono text-violet-200 shrink-0 self-start sm:self-center"
                 >
                   Consultar Impacto
                 </button>
@@ -520,7 +503,7 @@ export const SentimentGaugePanel: React.FC<SentimentGaugePanelProps> = ({
         <div className="flex items-center gap-2 mb-3">
           <Activity className="w-4 h-4 text-cyan-400" />
           <h3 className="font-orbitron font-bold text-xs text-cyan-100 tracking-wider">
-            MATRIZ DE CORRELAÇÃO DE ATIVOS (STARK QUANT ENGINE)
+            MATRIZ DE CORRELAÇÃO DE ATIVOS // ENGINE QUANTITATIVA
           </h3>
         </div>
 
